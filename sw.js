@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "dragonfly-ledger-v2";
+const CACHE_NAME = "dragonfly-ledger-v3";
 
 const APP_FILES = [
   "./",
@@ -43,11 +43,43 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin !== self.location.origin) return;
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+  // HTML 導覽：優先取得最新版，失敗時才用快取。
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
 
-      return fetch(request).then((response) => {
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put("./index.html", copy);
+            });
+          }
+
+          return response;
+        })
+        .catch(async () => {
+          return (
+            await caches.match("./index.html")
+          ) || new Response(
+            "目前離線，請先開啟過記帳本再試一次。",
+            {
+              status: 503,
+              headers: {
+                "Content-Type": "text/plain; charset=utf-8"
+              }
+            }
+          );
+        })
+    );
+
+    return;
+  }
+
+  // 其他同源檔案：網路優先，離線時使用快取。
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
         if (response.ok && response.type === "basic") {
           const copy = response.clone();
 
@@ -57,17 +89,19 @@ self.addEventListener("fetch", (event) => {
         }
 
         return response;
-      });
-    }).catch(async () => {
-      if (request.mode === "navigate") {
-        const fallback = await caches.match("./index.html");
-        if (fallback) return fallback;
-      }
+      })
+      .catch(async () => {
+        const cached = await caches.match(request);
 
-      return new Response("目前離線，這個檔案尚未快取。", {
-        status: 503,
-        headers: { "Content-Type": "text/plain; charset=utf-8" }
-      });
-    })
+        return cached || new Response(
+          "目前離線，這個檔案尚未快取。",
+          {
+            status: 503,
+            headers: {
+              "Content-Type": "text/plain; charset=utf-8"
+            }
+          }
+        );
+      })
   );
 });
