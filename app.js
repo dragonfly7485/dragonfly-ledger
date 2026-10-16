@@ -1,8 +1,8 @@
-
 const $ = (selector) => document.querySelector(selector);
 
 const STORAGE_KEY = "dragonfly-ledger-v1";
 const BUDGET_STORAGE_KEY = "dragonfly-ledger-budgets-v1";
+const THEME_STORAGE_KEY = "dragonfly-ledger-theme-v1";
 
 const categories = {
   expense: ["飲食", "交通", "購物", "娛樂", "生活", "學習", "醫療", "其他"],
@@ -71,8 +71,12 @@ function loadBudgets() {
   try {
     const saved = localStorage.getItem(BUDGET_STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : {};
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? parsed : {};
+
+    return parsed &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed)
+      ? parsed
+      : {};
   } catch (error) {
     console.error("讀取預算失敗：", error);
     return {};
@@ -91,6 +95,106 @@ function saveBudgets() {
 }
 
 /* =========================
+   外觀主題：淺色／深色
+   ========================= */
+
+function applyTheme(theme) {
+  const selectedTheme = theme === "dark" ? "dark" : "light";
+
+  // 套用至整個網站，供 CSS 根據 data-theme 切換樣式。
+  document.documentElement.dataset.theme = selectedTheme;
+
+  const themeSelect = $("#themeSelect");
+  if (themeSelect) {
+    themeSelect.value = selectedTheme;
+  }
+
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, selectedTheme);
+  } catch (error) {
+    console.error("儲存主題設定失敗：", error);
+  }
+}
+
+function initializeTheme() {
+  let savedTheme = "light";
+
+  try {
+    savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "light";
+  } catch (error) {
+    console.error("讀取主題設定失敗：", error);
+  }
+
+  savedTheme = savedTheme === "dark" ? "dark" : "light";
+
+  const settingsSection = $("#settingsSection");
+  const settingsCard = settingsSection?.querySelector(".settings-card");
+
+  if (!settingsCard) {
+    console.error("找不到原本的設定卡片，無法加入主題切換。");
+    applyTheme(savedTheme);
+    return;
+  }
+
+  // 如果已存在主題列就沿用，避免重複建立。
+  let themeRow = $("#themeSettingsRow");
+
+  if (!themeRow) {
+    themeRow = document.createElement("div");
+    themeRow.id = "themeSettingsRow";
+    themeRow.className = "settings-row";
+
+    themeRow.innerHTML = `
+      <div>
+        <strong>外觀</strong>
+        <p>自訂應用程式的顯示風格</p>
+      </div>
+      <select id="themeSelect" aria-label="選擇外觀主題">
+        <option value="light">☀️ 淺色模式</option>
+        <option value="dark">🌙 深色模式</option>
+      </select>
+    `;
+
+    // 優先放在「資料儲存」設定列之前。
+    const settingsRows = [
+      ...settingsCard.querySelectorAll(".settings-row")
+    ];
+
+    const dataRow = settingsRows.find((row) =>
+      row.querySelector("strong")?.textContent.trim() === "資料儲存"
+    );
+
+    const note = settingsCard.querySelector(".settings-note");
+
+    if (dataRow) {
+      settingsCard.insertBefore(themeRow, dataRow);
+    } else if (note) {
+      settingsCard.insertBefore(themeRow, note);
+    } else {
+      settingsCard.appendChild(themeRow);
+    }
+  }
+
+  const themeSelect = $("#themeSelect");
+
+  if (themeSelect) {
+    themeSelect.value = savedTheme;
+
+    // 避免初始化重複綁定事件。
+    if (themeSelect.dataset.themeListener !== "true") {
+      themeSelect.addEventListener("change", () => {
+        applyTheme(themeSelect.value);
+      });
+
+      themeSelect.dataset.themeListener = "true";
+    }
+  }
+
+  // 頁面載入時恢復上次選擇的主題。
+  applyTheme(savedTheme);
+}
+
+/* =========================
    日期、金額與安全文字
    ========================= */
 
@@ -98,6 +202,7 @@ function localDate(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
+
   return `${year}-${month}-${day}`;
 }
 
@@ -183,13 +288,16 @@ function initializeMenu() {
     }
 
     Object.entries(pages).forEach(([name, section]) => {
-      if (section) section.hidden = name !== pageName;
+      if (section) {
+        section.hidden = name !== pageName;
+      }
     });
 
     document.body.dataset.page = pageName;
 
     menuItems.forEach((item) => {
       const active = item.dataset.pageTarget === pageName;
+
       item.classList.toggle("active", active);
 
       if (active) {
@@ -200,7 +308,9 @@ function initializeMenu() {
     });
 
     // 新增記帳按鈕只在首頁顯示。
-    if (addButton) addButton.hidden = pageName !== "home";
+    if (addButton) {
+      addButton.hidden = pageName !== "home";
+    }
 
     closeMenu();
 
@@ -262,13 +372,18 @@ function sum(recordsToSum, type) {
 
 function expenseByCategory(monthRecords) {
   const totals = {};
-  categories.expense.forEach((category) => totals[category] = 0);
+
+  categories.expense.forEach((category) => {
+    totals[category] = 0;
+  });
 
   monthRecords
     .filter((record) => record.type === "expense")
     .forEach((record) => {
       const category = categories.expense.includes(record.category)
-        ? record.category : "其他";
+        ? record.category
+        : "其他";
+
       totals[category] += Number(record.amount) || 0;
     });
 
@@ -284,6 +399,7 @@ function updateCategoryOptions(selectedCategory = "") {
   if (!categorySelect) return;
 
   const options = categories[currentType];
+
   categorySelect.innerHTML = options.map((category) =>
     `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`
   ).join("");
@@ -296,6 +412,7 @@ function updateCategoryOptions(selectedCategory = "") {
 function updateTypeButtons() {
   document.querySelectorAll(".type-button").forEach((button) => {
     const active = button.dataset.type === currentType;
+
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
@@ -309,6 +426,7 @@ function updateTypeButtons() {
 
 function renderMonth() {
   const monthRecords = getMonthRecords();
+
   const income = sum(monthRecords, "income");
   const expense = sum(monthRecords, "expense");
   const balance = income - expense;
@@ -327,11 +445,12 @@ function renderMonth() {
 
   $("#monthRing").style.background = total
     ? `conic-gradient(var(--green) 0% ${incomePercent}%, var(--red) ${incomePercent}% 100%)`
-    : "#e8ece9";
+    : "var(--surface-soft, #e8ece9)";
 
   $("#monthNet").style.color =
     balance > 0 ? "var(--green)" :
-    balance < 0 ? "var(--red)" : "var(--text)";
+    balance < 0 ? "var(--red)" :
+    "var(--text)";
 
   renderBudget();
 }
@@ -346,12 +465,15 @@ function renderDay() {
   $("#dayIncome").textContent = money(sum(dayRecords, "income"));
   $("#dayExpense").textContent = money(sum(dayRecords, "expense"));
 
-  const balance = sum(dayRecords, "income") - sum(dayRecords, "expense");
+  const balance =
+    sum(dayRecords, "income") - sum(dayRecords, "expense");
+
   $("#dayBalance").textContent = money(balance);
   $("#recordCount").textContent = `${dayRecords.length} 筆紀錄`;
 
   const [, month, day] = selectedDate().split("-");
-  $("#listDate").textContent = `${Number(month)} 月 ${Number(day)} 日的紀錄`;
+  $("#listDate").textContent =
+    `${Number(month)} 月 ${Number(day)} 日的紀錄`;
 
   const list = $("#transactionList");
 
@@ -402,15 +524,19 @@ function renderDay() {
 function getMonthBudget() {
   const month = currentMonth();
 
-  if (!budgets[month] ||
-      typeof budgets[month] !== "object" ||
-      Array.isArray(budgets[month])) {
+  if (
+    !budgets[month] ||
+    typeof budgets[month] !== "object" ||
+    Array.isArray(budgets[month])
+  ) {
     budgets[month] = { total: 0, categories: {} };
   }
 
-  if (!budgets[month].categories ||
-      typeof budgets[month].categories !== "object" ||
-      Array.isArray(budgets[month].categories)) {
+  if (
+    !budgets[month].categories ||
+    typeof budgets[month].categories !== "object" ||
+    Array.isArray(budgets[month].categories)
+  ) {
     budgets[month].categories = {};
   }
 
@@ -434,8 +560,14 @@ function renderBudget() {
   const budgetProgressBar = $("#budgetProgressBar");
   const budgetStatus = $("#budgetStatus");
 
-  if (!budgetTotal || !budgetSpent || !budgetRemaining ||
-      !budgetProgress || !budgetProgressBar || !budgetStatus) {
+  if (
+    !budgetTotal ||
+    !budgetSpent ||
+    !budgetRemaining ||
+    !budgetProgress ||
+    !budgetProgressBar ||
+    !budgetStatus
+  ) {
     return;
   }
 
@@ -448,13 +580,20 @@ function renderBudget() {
   budgetRemaining.textContent = formatTWD(remaining);
 
   budgetRemaining.classList.toggle(
-    "over-budget", totalBudget > 0 && remaining < 0
+    "over-budget",
+    totalBudget > 0 && remaining < 0
   );
 
-  budgetProgress.setAttribute("aria-valuenow", String(Math.round(progress)));
+  budgetProgress.setAttribute(
+    "aria-valuenow",
+    String(Math.round(progress))
+  );
+
   budgetProgressBar.style.width = `${progress}%`;
+
   budgetProgressBar.classList.toggle(
-    "over-budget", totalBudget > 0 && totalSpent > totalBudget
+    "over-budget",
+    totalBudget > 0 && totalSpent > totalBudget
   );
 
   budgetStatus.className = "budget-status";
@@ -464,10 +603,12 @@ function renderBudget() {
   } else if (totalSpent > totalBudget) {
     budgetStatus.textContent =
       `已超出預算 ${formatTWD(totalSpent - totalBudget)}，留意接下來的支出。`;
+
     budgetStatus.classList.add("over-budget");
   } else if (ratio >= 0.8) {
     budgetStatus.textContent =
       `已使用 ${Math.round(ratio * 100)}%，快接近本月上限了。`;
+
     budgetStatus.classList.add("warning");
   } else {
     budgetStatus.textContent =
@@ -481,6 +622,7 @@ function renderBudget() {
 function renderCategoryBudgets(monthBudget, monthRecords) {
   const totals = expenseByCategory(monthRecords);
   const container = $("#categoryBudgetFields");
+
   if (!container) return;
 
   container.innerHTML = categories.expense.map((category) => {
@@ -527,9 +669,11 @@ function renderCategoryBudgets(monthBudget, monthRecords) {
 function renderExpensePie(monthRecords) {
   const pie = $("#expensePie");
   const legend = $("#expenseLegend");
+
   if (!pie || !legend) return;
 
   const totals = expenseByCategory(monthRecords);
+
   const entries = categories.expense
     .map((category, index) => ({
       category,
@@ -538,26 +682,34 @@ function renderExpensePie(monthRecords) {
     }))
     .filter((item) => item.amount > 0);
 
-  const total = entries.reduce((result, item) => result + item.amount, 0);
+  const total = entries.reduce(
+    (result, item) => result + item.amount,
+    0
+  );
 
   if (total <= 0) {
-    pie.style.background = "#e8ece9";
+    pie.style.background = "var(--surface-soft, #e8ece9)";
     pie.setAttribute("aria-label", "本月尚無支出");
+
     legend.innerHTML = `
       <p class="expense-legend-empty">
         本月還沒有支出，記帳後就會顯示圓餅圖。
       </p>`;
+
     return;
   }
 
   let accumulated = 0;
+
   const stops = entries.map((item) => {
     const start = accumulated;
     accumulated += item.amount / total * 100;
+
     return `${item.color} ${start}% ${accumulated}%`;
   });
 
   pie.style.background = `conic-gradient(${stops.join(", ")})`;
+
   pie.setAttribute(
     "aria-label",
     `本月總支出 ${formatTWD(total)}，共 ${entries.length} 個支出分類`
@@ -600,7 +752,10 @@ function saveTotalBudget(value) {
 
   monthBudget.total = amount;
 
-  if (!saveBudgets()) monthBudget.total = previous;
+  if (!saveBudgets()) {
+    monthBudget.total = previous;
+  }
+
   renderBudget();
 }
 
@@ -620,8 +775,11 @@ function saveCategoryBudget(category, value) {
   monthBudget.categories[category] = amount;
 
   if (!saveBudgets()) {
-    if (previous === undefined) delete monthBudget.categories[category];
-    else monthBudget.categories[category] = previous;
+    if (previous === undefined) {
+      delete monthBudget.categories[category];
+    } else {
+      monthBudget.categories[category] = previous;
+    }
   }
 
   renderBudget();
@@ -694,7 +852,7 @@ function saveForm(event) {
 
   const record = {
     id: editingId || (
-      crypto.randomUUID
+      typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(36).slice(2)}`
     ),
@@ -710,7 +868,9 @@ function saveForm(event) {
   const previousRecords = [...records];
 
   if (editingId) {
-    records = records.map((item) => item.id === editingId ? record : item);
+    records = records.map((item) =>
+      item.id === editingId ? record : item
+    );
   } else {
     records.push(record);
   }
@@ -734,9 +894,11 @@ function deleteRecord(id) {
   const confirmed = confirm(
     `確定刪除這筆${record.type === "income" ? "收入" : "支出"}紀錄嗎？`
   );
+
   if (!confirmed) return;
 
   const previousRecords = [...records];
+
   records = records.filter((item) => item.id !== id);
 
   if (!saveRecords()) {
@@ -780,7 +942,9 @@ function importBackup(file) {
   reader.onload = () => {
     try {
       const backup = JSON.parse(reader.result);
-      const imported = Array.isArray(backup) ? backup : backup.records;
+      const imported = Array.isArray(backup)
+        ? backup
+        : backup.records;
 
       if (!Array.isArray(imported)) {
         throw new Error("備份格式不正確");
@@ -797,9 +961,13 @@ function importBackup(file) {
         categories[record.type].includes(record.category)
       );
 
-      if (!valid) throw new Error("備份內有不正確的紀錄");
+      if (!valid) {
+        throw new Error("備份內有不正確的紀錄");
+      }
 
-      if (!confirm("匯入備份會取代這台裝置目前的所有紀錄，確定繼續嗎？")) {
+      if (!confirm(
+        "匯入備份會取代這台裝置目前的所有紀錄，確定繼續嗎？"
+      )) {
         return;
       }
 
@@ -811,7 +979,9 @@ function importBackup(file) {
         amount: Math.round(Number(record.amount) * 100) / 100,
         date: record.date,
         category: record.category,
-        payment: paymentMethods.includes(record.payment) ? record.payment : "其他",
+        payment: paymentMethods.includes(record.payment)
+          ? record.payment
+          : "其他",
         note: typeof record.note === "string" ? record.note : "",
         createdAt: Number(record.createdAt) || 0
       }));
@@ -827,7 +997,9 @@ function importBackup(file) {
       alert(`匯入失敗：${error.message || "檔案無法讀取"}`);
     } finally {
       const importInput = $("#importFile");
-      if (importInput) importInput.value = "";
+      if (importInput) {
+        importInput.value = "";
+      }
     }
   };
 
@@ -839,6 +1011,9 @@ function importBackup(file) {
    ========================= */
 
 function initialize() {
+  // 先恢復外觀設定，再初始化其他介面。
+  initializeTheme();
+
   const today = localDate();
 
   $("#monthPicker").value = today.slice(0, 7);
@@ -851,11 +1026,13 @@ function initialize() {
 
   updateCategoryOptions();
 
+  // 新增與編輯視窗。
   $("#addBtn").addEventListener("click", () => openForm());
   $("#closeDialog").addEventListener("click", closeForm);
   $("#cancelDialog").addEventListener("click", closeForm);
   $("#transactionForm").addEventListener("submit", saveForm);
 
+  // 收入／支出切換。
   document.querySelectorAll(".type-button").forEach((button) => {
     button.addEventListener("click", () => {
       currentType = button.dataset.type;
@@ -863,31 +1040,47 @@ function initialize() {
     });
   });
 
+  // 日期與月份篩選。
   $("#monthPicker").addEventListener("change", render);
   $("#datePicker").addEventListener("change", renderDay);
 
+  // 帳目編輯與刪除。
   $("#transactionList").addEventListener("click", (event) => {
     const editButton = event.target.closest("[data-edit]");
     const deleteButton = event.target.closest("[data-delete]");
 
     if (editButton) {
-      const record = records.find((item) => item.id === editButton.dataset.edit);
-      if (record) openForm(record);
+      const record = records.find(
+        (item) => item.id === editButton.dataset.edit
+      );
+
+      if (record) {
+        openForm(record);
+      }
     }
 
-    if (deleteButton) deleteRecord(deleteButton.dataset.delete);
+    if (deleteButton) {
+      deleteRecord(deleteButton.dataset.delete);
+    }
   });
 
+  // 每月總預算。
   $("#budgetTotal").addEventListener("change", (event) => {
     saveTotalBudget(event.target.value);
   });
 
+  // 各分類預算。
   $("#categoryBudgetFields").addEventListener("change", (event) => {
     const input = event.target.closest("[data-category-budget]");
     if (!input) return;
-    saveCategoryBudget(input.dataset.categoryBudget, input.value);
+
+    saveCategoryBudget(
+      input.dataset.categoryBudget,
+      input.value
+    );
   });
 
+  // 備份功能保留原有事件綁定，不新增介面按鈕。
   $("#exportBtn")?.addEventListener("click", exportBackup);
 
   $("#importBtn")?.addEventListener("click", () => {
@@ -896,9 +1089,12 @@ function initialize() {
 
   $("#importFile")?.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
-    if (file) importBackup(file);
+    if (file) {
+      importBackup(file);
+    }
   });
 
+  // 初次渲染與側邊選單。
   render();
   initializeMenu();
 }
