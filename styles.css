@@ -1277,3 +1277,192 @@ dialog form {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* =========================
+   主題切換：深色模式
+   ========================= */
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --background: #f6f7f9;
+  --card: #ffffff;
+  --text: #26332b;
+  --muted: #778078;
+  --border: #e5e9e5;
+  --green-light: #e7f0e9;
+  --red-light: #f8e9e7;
+  --shadow: 0 8px 24px rgba(35, 54, 42, 0.06);
+
+  --surface-soft: #f5f7f5;
+  --input-background: #fbfcfb;
+  --control-background: #f0f2f0;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #141a17;
+  --card: #202923;
+  --text: #e7eee9;
+  --muted: #a2afa6;
+  --border: #354139;
+  --green: #7bc49a;
+  --green-dark: #28523c;
+  --green-light: #293f32;
+  --red: #ff8c86;
+  --red-light: #482c2b;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  --surface-soft: #29332d;
+  --input-background: #19211c;
+  --control-background: #303b34;
+}
+
+/* 全站使用主題背景，避免 iOS 左右拖動 */
+html {
+  background: var(--background);
+  overflow-x: clip;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  overflow-x: clip;
+}
+
+.app,
+section,
+.settings-card,
+.budget-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 深色模式：補齊原本寫死的淺色背景 */
+:root[data-theme="dark"] .budget-input-wrap,
+:root[data-theme="dark"] .category-budget-row input,
+:root[data-theme="dark"] .amount-field {
+  background: var(--input-background);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .close-menu-button,
+:root[data-theme="dark"] .close-button,
+:root[data-theme="dark"] .cancel-button,
+:root[data-theme="dark"] .type-switch {
+  background: var(--control-background);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .menu-item {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .menu-item:hover {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .menu-item.active {
+  background: var(--green-light);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .menu-item-icon {
+  background: var(--surface-soft);
+}
+
+:root[data-theme="dark"] .menu-button:hover {
+  background: var(--surface-soft);
+}
+
+:root[data-theme="dark"] .menu-button span {
+  background: var(--text);
+}
+
+:root[data-theme="dark"] .ring,
+:root[data-theme="dark"] .budget-progress-track,
+:root[data-theme="dark"] .expense-pie {
+  background-color: var(--surface-soft);
+}
+
+:root[data-theme="dark"] .ring-center,
+:root[data-theme="dark"] .expense-pie::after,
+:root[data-theme="dark"] .type-button.active {
+  background: var(--card);
+}
+
+:root[data-theme="dark"] .settings-note {
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .type-button {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .type-button.active[data-type="income"] {
+  color: var(--green);
+}
+
+:root[data-theme="dark"] .type-button.active[data-type="expense"] {
+  color: var(--red);
+}
+
+:root[data-theme="dark"] .amount-field > span,
+:root[data-theme="dark"] .budget-input-wrap span {
+  color: var(--green);
+}
+
+/* iPhone：固定新增／編輯對話框的水平尺寸 */
+dialog {
+  width: calc(100% - 28px);
+  max-width: 460px;
+  min-width: 0;
+  overflow-x: clip;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+dialog form {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+dialog input,
+dialog select,
+dialog button {
+  min-width: 0;
+  max-width: 100%;
+}
+
+dialog input[type="date"],
+dialog input[type="number"],
+dialog input[type="text"],
+dialog select {
+  width: 100%;
+}
+
+.amount-field,
+.type-switch,
+.dialog-heading {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.amount-field input {
+  flex: 1;
+  width: 0;
+}
+
+@media (max-width: 390px) {
+  dialog {
+    width: calc(100% - 24px);
+    padding: 18px;
+  }
+}
