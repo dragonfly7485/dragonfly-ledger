@@ -1629,3 +1629,19 @@ dialog select {
   opacity: 1;
   transform: translate(-50%, 0);
 }
+
+/* iOS Safari：避免小字輸入欄位聚焦時自動放大頁面 */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .category-budget-row input,
+  .section-heading input[type="month"],
+  .section-heading input[type="date"],
+  .query-filter-field input,
+  .query-filter-field select,
+  .field-label + select,
+  .field-label + input:not([type="checkbox"]) {
+    font-size: 16px;
+  }
+}
