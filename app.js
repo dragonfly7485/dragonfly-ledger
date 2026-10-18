@@ -214,6 +214,112 @@ function selectedDate() {
   return $("#datePicker").value || localDate();
 }
 
+const calendarState = { mode: "date", targetId: "", year: 0, month: 0 };
+
+function formatDateLabel(value) {
+  if (!value) return "選擇日期";
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("zh-TW", {
+    year: "numeric", month: "long", day: "numeric", weekday: "short"
+  });
+}
+
+function formatMonthLabel(value) {
+  if (!value) return "選擇月份";
+  const [year, month] = value.split("-").map(Number);
+  return `${year} 年 ${month} 月`;
+}
+
+function syncDateLabels() {
+  $("#monthPickerButton").textContent = formatMonthLabel($("#monthPicker").value);
+  $("#datePickerButton").textContent = formatDateLabel($("#datePicker").value);
+  $("#transactionDateButton").textContent = formatDateLabel($("#transactionDate").value);
+}
+
+function openCalendar(mode, targetId) {
+  const value = $("#" + targetId).value || (mode === "month" ? localDate().slice(0, 7) : localDate());
+  const parts = value.split("-").map(Number);
+  calendarState.mode = mode;
+  calendarState.targetId = targetId;
+  calendarState.year = parts[0] || new Date().getFullYear();
+  calendarState.month = (parts[1] || 1) - 1;
+  renderCalendar();
+  $("#calendarDialog").showModal();
+}
+
+function renderCalendar() {
+  const { mode, targetId, year, month } = calendarState;
+  const grid = $("#calendarGrid");
+  const weekdays = $("#calendarWeekdays");
+  const monthMode = mode === "month";
+  const selectedValue = $("#" + targetId).value;
+  $("#calendarTitle").textContent = monthMode ? `${year} 年` : `${year} 年 ${month + 1} 月`;
+  weekdays.hidden = monthMode;
+  grid.classList.toggle("month-grid", monthMode);
+  grid.innerHTML = "";
+
+  if (monthMode) {
+    for (let index = 0; index < 12; index += 1) {
+      const value = `${year}-${String(index + 1).padStart(2, "0")}`;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "calendar-cell month-cell";
+      button.textContent = `${index + 1} 月`;
+      button.dataset.calendarValue = value;
+      button.dataset.calendarSelect = "month";
+      if (value === selectedValue) button.classList.add("selected");
+      grid.append(button);
+    }
+    return;
+  }
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const dayCount = new Date(year, month + 1, 0).getDate();
+  for (let i = 0; i < firstDay; i += 1) {
+    const spacer = document.createElement("span");
+    spacer.className = "calendar-empty";
+    spacer.setAttribute("aria-hidden", "true");
+    grid.append(spacer);
+  }
+  const today = localDate();
+  for (let day = 1; day <= dayCount; day += 1) {
+    const value = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar-cell";
+    button.textContent = String(day);
+    button.dataset.calendarValue = value;
+    button.dataset.calendarSelect = "date";
+    button.setAttribute("aria-label", formatDateLabel(value));
+    if (value === selectedValue) button.classList.add("selected");
+    if (value === today) button.classList.add("today");
+    grid.append(button);
+  }
+}
+
+function closeCalendar() {
+  $("#calendarDialog").close();
+}
+
+function chooseCalendarValue(value) {
+  $("#" + calendarState.targetId).value = value;
+  syncDateLabels();
+  closeCalendar();
+  if (calendarState.targetId === "monthPicker") render();
+  if (calendarState.targetId === "datePicker") renderDay();
+}
+
+function moveCalendar(amount) {
+  if (calendarState.mode === "month") {
+    calendarState.year += amount;
+  } else {
+    const next = new Date(calendarState.year, calendarState.month + amount, 1);
+    calendarState.year = next.getFullYear();
+    calendarState.month = next.getMonth();
+  }
+  renderCalendar();
+}
+
 function money(value) {
   return "$" + Math.round(value).toLocaleString("en-US");
 }
@@ -912,6 +1018,7 @@ function openForm(record = null) {
   $("#formTitle").textContent = record ? "編輯紀錄" : "新增紀錄";
   $("#amount").value = record ? record.amount : "";
   $("#transactionDate").value = record ? record.date : selectedDate();
+  syncDateLabels();
   $("#note").value = record ? record.note || "" : "";
   $("#formError").textContent = "";
 
@@ -925,7 +1032,6 @@ function openForm(record = null) {
   }
 
   $("#transactionDialog").showModal();
-  $("#amount").focus();
 }
 
 function closeForm() {
@@ -1176,6 +1282,7 @@ function initialize() {
   $("#monthPicker").value = today.slice(0, 7);
   $("#datePicker").value = today;
   $("#transactionDate").value = today;
+  syncDateLabels();
 
   $("#payment").innerHTML = paymentMethods.map((method) =>
     `<option value="${escapeHTML(method)}">${escapeHTML(method)}</option>`
@@ -1203,9 +1310,21 @@ function initialize() {
     });
   });
 
-  // 日期與月份篩選。
-  $("#monthPicker").addEventListener("change", render);
-  $("#datePicker").addEventListener("change", renderDay);
+  // 自訂日期／月份選擇器，避免 iOS 原生 date/month 控制項觸發縮放。
+  $("#monthPickerButton").addEventListener("click", () => openCalendar("month", "monthPicker"));
+  $("#datePickerButton").addEventListener("click", () => openCalendar("date", "datePicker"));
+  $("#transactionDateButton").addEventListener("click", () => openCalendar("date", "transactionDate"));
+  $("#calendarPrev").addEventListener("click", () => moveCalendar(-1));
+  $("#calendarNext").addEventListener("click", () => moveCalendar(1));
+  $("#calendarCancel").addEventListener("click", closeCalendar);
+  $("#calendarToday").addEventListener("click", () => {
+    const today = localDate();
+    chooseCalendarValue(calendarState.mode === "month" ? today.slice(0, 7) : today);
+  });
+  $("#calendarGrid").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-calendar-select]");
+    if (button) chooseCalendarValue(button.dataset.calendarValue);
+  });
 
   // 查詢條件即時套用，可同時使用多個條件。
   ["#queryAmountMin", "#queryAmountMax", "#queryNote", "#queryPayment"].forEach((selector) => {
