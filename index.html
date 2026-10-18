@@ -545,16 +545,19 @@
         <span>$</span>
         <input
           id="amount"
-          type="number"
-          inputmode="decimal"
-          min="0.01"
-          step="0.01"
+          type="text"
+          inputmode="none"
+          readonly
+          autocomplete="off"
           placeholder="0"
           required
-          aria-label="記帳金額"
+          aria-label="記帳金額，點擊開啟計算機"
+          aria-haspopup="true"
+          aria-controls="calculator"
+          aria-expanded="false"
         >
       </div>
-      <div id="calculator" class="calculator" aria-label="金額計算機">
+      <div id="calculator" class="calculator calculator-hidden" aria-label="金額計算機">
         <div class="calculator-display">
           <span class="calculator-display-label">計算金額</span>
           <strong id="calculatorStatus" class="calculator-status" aria-live="polite">輸入金額或開始計算</strong>
