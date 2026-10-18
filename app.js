@@ -351,6 +351,7 @@ function initializeMenu() {
   const pages = {
     home: $("#homeSection"),
     budget: $("#budgetSection"),
+    analysis: $("#analysisSection"),
     records: $("#recordsSection"),
     settings: $("#settingsSection")
   };
@@ -425,6 +426,8 @@ function initializeMenu() {
       render();
     } else if (pageName === "budget") {
       renderBudget();
+    } else if (pageName === "analysis") {
+      renderAnalytics();
     } else if (pageName === "records") {
       renderQueryRecords();
     }
@@ -1004,10 +1007,137 @@ function saveCategoryBudget(category, value) {
    新增與編輯紀錄
    ========================= */
 
+function monthKeyOffset(monthKey, offset) {
+  const [year, month] = monthKey.split("-").map(Number);
+  const date = new Date(year, month - 1 + offset, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthExpenseTotal(monthKey) {
+  return records
+    .filter((record) => record.type === "expense" && typeof record.date === "string" && record.date.startsWith(monthKey))
+    .reduce((total, record) => total + (Number(record.amount) || 0), 0);
+}
+
+function renderAnalytics() {
+  const root = $("#analysisSection");
+  if (!root) return;
+
+  const monthKey = currentMonth();
+  const monthRecords = records.filter((record) =>
+    typeof record.date === "string" && record.date.startsWith(monthKey)
+  );
+  const monthExpenses = monthRecords.filter((record) => record.type === "expense");
+  const spend = monthExpenses.reduce((total, record) => total + (Number(record.amount) || 0), 0);
+  const previousMonth = monthKeyOffset(monthKey, -1);
+  const previousSpend = monthExpenseTotal(previousMonth);
+  const change = previousSpend > 0 ? ((spend - previousSpend) / previousSpend) * 100 : null;
+  const activeDays = new Set(monthRecords.map((record) => record.date)).size;
+  const categoryTotals = expenseByCategory(monthRecords);
+  const rankedCategories = Object.entries(categoryTotals)
+    .filter(([, amount]) => amount > 0)
+    .sort((a, b) => b[1] - a[1]);
+  const topCategory = rankedCategories[0];
+
+  $("#analyticsMonthLabel").textContent = monthKey;
+  $("#analyticsMonthSpend").textContent = formatTWD(spend);
+  $("#analyticsMonthChange").className = "analytics-change";
+  if (change === null) {
+    $("#analyticsMonthChange").textContent = previousSpend > 0
+      ? "上個月沒有可比較的支出。"
+      : "新增紀錄後，這裡會比較上個月。";
+  } else {
+    const direction = change > 0 ? "增加" : change < 0 ? "減少" : "持平";
+    $("#analyticsMonthChange").textContent = `較上個月${direction} ${Math.abs(change).toFixed(1)}%`;
+    $("#analyticsMonthChange").classList.add(change > 0 ? "is-up" : change < 0 ? "is-down" : "is-even");
+  }
+  $("#analyticsRecordDays").textContent = `${activeDays} 天`;
+  $("#analyticsRecordCount").textContent = `${monthRecords.length} 筆`;
+  $("#analyticsTopCategory").textContent = topCategory ? `${categoryIcons[topCategory[0]] || "🧾"} ${topCategory[0]}` : "尚無資料";
+
+  const trend = $("#monthlyTrend");
+  const trendValues = Array.from({ length: 6 }, (_, index) => {
+    const key = monthKeyOffset(monthKey, index - 5);
+    return { key, amount: monthExpenseTotal(key) };
+  });
+  const maxSpend = Math.max(1, ...trendValues.map((item) => item.amount));
+  trend.innerHTML = trendValues.map((item) => {
+    const height = item.amount > 0 ? Math.max(5, item.amount / maxSpend * 100) : 3;
+    const isSelected = item.key === monthKey;
+    return `
+      <div class="trend-column ${isSelected ? "selected" : ""}" title="${item.key}：${formatTWD(item.amount)}">
+        <span class="trend-amount">${item.amount > 0 ? formatTWD(item.amount) : "－"}</span>
+        <div class="trend-track"><span class="trend-bar" style="height:${height}%"></span></div>
+        <span class="trend-label">${Number(item.key.slice(5))} 月</span>
+      </div>`;
+  }).join("");
+
+  const insight = $("#categoryInsight");
+  if (!topCategory) {
+    insight.innerHTML = '<p class="analytics-empty">這個月還沒有支出。先記下一筆，花費觀察就會開始累積。</p>';
+  } else {
+    const topShare = spend > 0 ? topCategory[1] / spend * 100 : 0;
+    const secondCategory = rankedCategories[1];
+    const average = monthExpenses.length ? spend / monthExpenses.length : 0;
+    insight.innerHTML = `
+      <div class="insight-row"><span>最大支出分類</span><strong>${categoryIcons[topCategory[0]] || "🧾"} ${escapeHTML(topCategory[0])} · ${formatTWD(topCategory[1])}</strong></div>
+      <div class="insight-meter"><span style="width:${Math.min(100, topShare)}%"></span></div>
+      <p class="insight-caption">佔本月支出的 ${topShare.toFixed(1)}%</p>
+      <div class="insight-mini-grid">
+        <div><span>單筆平均支出</span><strong>${formatTWD(average)}</strong></div>
+        <div><span>使用分類</span><strong>${rankedCategories.length} 種</strong></div>
+      </div>
+      ${secondCategory ? `<p class="insight-caption">第二大分類是 ${categoryIcons[secondCategory[0]] || "🧾"} ${escapeHTML(secondCategory[0])}（${formatTWD(secondCategory[1])}）。</p>` : ""}
+    `;
+  }
+
+  const allDays = [...new Set(records.filter((record) => typeof record.date === "string" && record.date).map((record) => record.date))].sort();
+  const expenseCategoriesUsed = new Set(records.filter((record) => record.type === "expense").map((record) => record.category)).size;
+  const xp = records.length * 10 + allDays.length * 5 + expenseCategoriesUsed * 10;
+  const level = Math.floor(xp / 100) + 1;
+  const levelProgress = xp % 100;
+  $("#dragonflyLevel").innerHTML = `
+    <div class="level-row"><div class="level-emblem">蜻</div><div class="level-copy"><span>蜻蜓等級</span><strong>Lv. ${level}</strong><small>${xp} XP · 距離下一級還差 ${100 - levelProgress} XP</small></div></div>
+    <div class="level-track" role="progressbar" aria-label="等級進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${levelProgress}"><span style="width:${levelProgress}%"></span></div>
+  `;
+
+  const streakDays = (() => {
+    const daySet = new Set(allDays);
+    if (!allDays.length) return 0;
+    let cursor = new Date(`${allDays[allDays.length - 1]}T12:00:00`);
+    let count = 0;
+    while (daySet.has(localDate(cursor))) {
+      count += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return count;
+  })();
+  const selectedBudget = budgets[monthKey];
+  const selectedBudgetTotal = Number(selectedBudget?.total) || 0;
+  const achievements = [
+    { icon: "🌱", title: "第一筆紀錄", detail: "踏出記帳第一步", done: records.length >= 1 },
+    { icon: "🗓️", title: "七日足跡", detail: "累積 7 個不同記帳日", done: allDays.length >= 7 },
+    { icon: "📚", title: "紀錄收藏家", detail: "累積 30 筆交易", done: records.length >= 30 },
+    { icon: "🎨", title: "分類探索者", detail: "使用 5 種支出分類", done: expenseCategoriesUsed >= 5 },
+    { icon: "🔥", title: "連續記帳", detail: "連續記帳 3 天", done: streakDays >= 3 },
+    { icon: "🛡️", title: "預算守護者", detail: "本月支出未超過已設定總預算", done: selectedBudgetTotal > 0 && spend <= selectedBudgetTotal }
+  ];
+  $("#achievementGrid").innerHTML = achievements.map((item) => `
+    <article class="achievement-card ${item.done ? "unlocked" : ""}">
+      <span class="achievement-icon">${item.icon}</span>
+      <div><strong>${item.title}</strong><small>${item.detail}</small></div>
+      <span class="achievement-state">${item.done ? "已解鎖" : "待完成"}</span>
+    </article>`).join("");
+
+  renderExpensePie(monthRecords);
+  renderPaymentPie(monthRecords);
+}
+
 function render() {
   renderMonth();
   renderDay();
   renderPaymentPie(getMonthRecords());
+  renderAnalytics();
   renderQueryRecords();
 }
 
