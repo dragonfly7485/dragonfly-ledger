@@ -1166,7 +1166,7 @@ function showBudgetFeedback(record) {
 
   const feedback = $("#budgetFeedback");
   if (!feedback) return;
-  feedback.textContent = `💰 ${messages.join("　·　")}`;
+  feedback.textContent = `💰 ${messages.join("\n")}`;
   feedback.classList.add("show");
   clearTimeout(budgetFeedbackTimer);
   budgetFeedbackTimer = setTimeout(() => feedback.classList.remove("show"), 5000);
