@@ -1056,8 +1056,6 @@ function resetCalculatorState() {
   calculatorOperator = null;
   calculatorResetDisplay = false;
   calculatorFirstValue = null;
-  const status = $("#calculatorStatus");
-  if (status) status.textContent = "輸入金額，或使用下方計算機";
 }
 
 function calculatorNumber() {
@@ -1067,20 +1065,16 @@ function calculatorNumber() {
 
 function formatCalculatorNumber(value) {
   if (!Number.isFinite(value)) return "";
-  const rounded = Math.round((value + Number.EPSILON) * 100000000) / 100000000;
-  return String(rounded);
+  return String(Math.round((value + Number.EPSILON) * 100000000) / 100000000);
 }
 
 function performCalculation(left, operator, right) {
-  if (operator === "+") return left + right;
-  if (operator === "−") return left - right;
-  return right;
+  return operator === "+" ? left + right : left - right;
 }
 
 function handleCalculatorAction(button) {
   const action = button.dataset.calc;
   const amount = $("#amount");
-  const status = $("#calculatorStatus");
   const value = button.dataset.value;
 
   if (action === "clear") {
@@ -1090,58 +1084,50 @@ function handleCalculatorAction(button) {
   }
 
   if (action === "digit") {
-    amount.value = calculatorResetDisplay || amount.value === "0"
-      ? value
-      : amount.value + value;
+    amount.value = calculatorResetDisplay || amount.value === "0" || /[+−]$/.test(amount.value)
+      ? value : amount.value + value;
     calculatorResetDisplay = false;
-  } else if (action === "decimal") {
-    if (calculatorResetDisplay || amount.value === "") amount.value = "0";
+    return;
+  }
+
+  if (action === "decimal") {
+    if (calculatorResetDisplay || !amount.value || /[+−]$/.test(amount.value)) amount.value = "0";
     if (!amount.value.includes(".")) amount.value += ".";
     calculatorResetDisplay = false;
-  } else if (action === "backspace") {
+    return;
+  }
+
+  if (action === "backspace") {
     amount.value = calculatorResetDisplay ? "" : amount.value.slice(0, -1);
     calculatorResetDisplay = false;
-  } else if (action === "operator") {
-    const current = calculatorNumber();
-    try {
-      if (calculatorOperator && !calculatorResetDisplay) {
-        const result = performCalculation(calculatorStoredValue, calculatorOperator, current);
-        amount.value = formatCalculatorNumber(result);
-        calculatorStoredValue = result;
-      } else {
-        calculatorStoredValue = current;
-      }
-      calculatorFirstValue = calculatorStoredValue;
-      calculatorOperator = value;
-      calculatorResetDisplay = true;
-      status.textContent = `${formatCalculatorNumber(calculatorStoredValue)} ${value}`;
-    } catch (error) {
-      status.textContent = error.message;
-      return;
-    }
-  } else if (action === "equals") {
-    if (!calculatorOperator) return;
-    try {
-      const rightValue = calculatorNumber();
-      const result = performCalculation(calculatorStoredValue, calculatorOperator, rightValue);
-      status.textContent = `${formatCalculatorNumber(calculatorFirstValue)} ${calculatorOperator} ${formatCalculatorNumber(rightValue)} =`;
-      amount.value = formatCalculatorNumber(result);
-      calculatorStoredValue = null;
-      calculatorOperator = null;
-      calculatorFirstValue = null;
-      calculatorResetDisplay = true;
-    } catch (error) {
-      status.textContent = error.message;
-    }
+    if (!amount.value || /[+−]$/.test(amount.value)) resetCalculatorState();
+    return;
   }
 
-  if (action === "digit" || action === "decimal" || action === "backspace") {
-    status.textContent = calculatorOperator
-      ? `${formatCalculatorNumber(calculatorStoredValue)} ${calculatorOperator}`
-      : "計算結果會填入金額欄位";
+  if (action === "operator") {
+    const current = calculatorResetDisplay && calculatorOperator
+      ? calculatorStoredValue : calculatorNumber();
+    if (calculatorOperator && !calculatorResetDisplay) {
+      calculatorStoredValue = performCalculation(calculatorStoredValue, calculatorOperator, current);
+    } else if (!calculatorOperator) {
+      calculatorStoredValue = current;
+    }
+    calculatorFirstValue = calculatorStoredValue;
+    calculatorOperator = value;
+    amount.value = `${formatCalculatorNumber(calculatorStoredValue)} ${value}`;
+    calculatorResetDisplay = true;
+    return;
+  }
+
+  if (action === "equals" && calculatorOperator) {
+    const right = calculatorResetDisplay ? calculatorStoredValue : calculatorNumber();
+    amount.value = formatCalculatorNumber(performCalculation(calculatorStoredValue, calculatorOperator, right));
+    calculatorStoredValue = null;
+    calculatorOperator = null;
+    calculatorFirstValue = null;
+    calculatorResetDisplay = true;
   }
 }
-
 
 function saveForm(event) {
   event.preventDefault();
