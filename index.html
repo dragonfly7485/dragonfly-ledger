@@ -458,7 +458,7 @@
       <h3>v2.0.2 <span>目前版本</span></h3>
       <ul>
         <li>新增全部重置，可清除本機記帳紀錄與預算，並加入二次確認。</li>
-        <li>新增金額計算機，支援加減乘除、小數、正負切換與刪除。</li>
+        
       </ul>
     </div>
     <div class="changelog-entry">
@@ -545,37 +545,15 @@
         <span>$</span>
         <input
           id="amount"
-          type="text"
-          inputmode="none"
-          readonly
+          type="number"
+          inputmode="decimal"
+          step="0.01"
+          min="0"
           autocomplete="off"
           placeholder="0"
           required
-          aria-label="記帳金額，點擊開啟計算機"
-          aria-haspopup="true"
-          aria-controls="calculator"
-          aria-expanded="false"
+          aria-label="記帳金額"
         >
-      </div>
-      <div id="calculator" class="calculator calculator-hidden" aria-label="金額計算機">
-        <div class="calculator-grid">
-          <button type="button" data-calc="clear" class="calculator-function">AC</button>
-          <button type="button" data-calc="backspace" class="calculator-function" aria-label="刪除一位">⌫</button>
-          <button type="button" data-calc="operator" data-value="−" class="calculator-operator">−</button>
-          <button type="button" data-calc="operator" data-value="+" class="calculator-operator">+</button>
-          <button type="button" data-calc="digit" data-value="7">7</button>
-          <button type="button" data-calc="digit" data-value="8">8</button>
-          <button type="button" data-calc="digit" data-value="9">9</button>
-          <button type="button" data-calc="decimal">.</button>
-          <button type="button" data-calc="digit" data-value="4">4</button>
-          <button type="button" data-calc="digit" data-value="5">5</button>
-          <button type="button" data-calc="digit" data-value="6">6</button>
-          <button type="button" data-calc="digit" data-value="0">0</button>
-          <button type="button" data-calc="digit" data-value="1">1</button>
-          <button type="button" data-calc="digit" data-value="2">2</button>
-          <button type="button" data-calc="digit" data-value="3">3</button>
-          <button type="button" data-calc="equals" class="calculator-equals">=</button>
-        </div>
       </div>
 
       <label class="field-label" for="category">分類</label>
