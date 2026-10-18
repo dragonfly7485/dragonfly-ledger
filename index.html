@@ -387,7 +387,7 @@
             <strong>應用程式</strong>
             <p>蜻蜓牌記帳本</p>
           </div>
-          <span class="settings-value">v2.0</span>
+          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.0.1</button>
         </div>
 
         <div class="settings-row">
@@ -406,6 +406,18 @@
           <span class="settings-value">本機</span>
         </div>
 
+        <div class="settings-backup">
+          <h3>資料備份與還原</h3>
+          <p class="settings-note">
+            備份會包含記帳紀錄與所有月份的預算。請將備份檔保存到網站以外的位置；
+            清除網站資料前，務必先匯出備份。
+          </p>
+          <button id="exportBtn" class="save-button settings-action-button" type="button">匯出備份檔</button>
+          <button id="importBtn" class="cancel-button settings-action-button" type="button">匯入／還原備份</button>
+          <input id="importFile" class="visually-hidden" type="file" accept=".json,application/json">
+          <p class="settings-help">匯入會取代目前裝置的記帳紀錄；新版備份也會還原預算。匯入舊版備份時，現有預算會保留。</p>
+        </div>
+
         <p class="settings-note">
           目前的記帳資料不會自動同步到其他裝置。
           請勿任意清除瀏覽器網站資料，以免遺失紀錄。
@@ -422,6 +434,33 @@
 
   <!-- 新增與編輯紀錄視窗 -->
   <div id="budgetFeedback" class="budget-feedback" role="status" aria-live="polite"></div>
+
+  <dialog id="changelogDialog" class="changelog-dialog" aria-labelledby="changelogTitle">
+    <div class="dialog-heading">
+      <h2 id="changelogTitle">版本更新紀錄</h2>
+      <button id="closeChangelog" class="close-button" type="button" aria-label="關閉更新紀錄">×</button>
+    </div>
+    <div class="changelog-entry">
+      <h3>v2.0.1 <span>目前版本</span></h3>
+      <ul>
+        <li>設定頁新增記帳紀錄與預算的 JSON 匯出、匯入。</li>
+        <li>匯入前檢查資料格式，儲存失敗時會嘗試還原原有資料。</li>
+        <li>支援讀取舊版備份；舊備份沒有預算資料時，會保留裝置上的現有預算。</li>
+        <li>點擊設定頁的版本號即可查看更新紀錄。</li>
+      </ul>
+    </div>
+    <div class="changelog-entry">
+      <h3>v2.0</h3>
+      <ul>
+        <li>提供本機記帳、每月收支總覽與分類支出比例。</li>
+        <li>提供付款方式支出比例、預算設定與紀錄查詢。</li>
+        <li>支援深色／淺色主題與自訂日期選擇器。</li>
+      </ul>
+    </div>
+    <div class="changelog-footer">
+      <button id="closeChangelogFooter" class="cancel-button" type="button">關閉</button>
+    </div>
+  </dialog>
 
   <dialog id="calendarDialog" class="calendar-dialog" aria-labelledby="calendarTitle">
     <div class="calendar-heading">
