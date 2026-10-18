@@ -1709,3 +1709,87 @@ dialog select {
   .section-heading .date-trigger { max-width: 56%; padding: 8px; font-size: 14px; }
   .calendar-dialog { padding: 14px; }
 }
+
+
+/* v2.0.1：版本紀錄與資料備份 */
+.version-button {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+.version-button:hover,
+.version-button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.settings-backup {
+  display: grid;
+  gap: 10px;
+  padding: 18px 0 8px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-backup h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.settings-backup .settings-note { margin: 0; }
+.settings-action-button { margin-top: 0; }
+.settings-help {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.changelog-dialog { width: min(460px, calc(100% - 28px)); }
+.changelog-entry {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.changelog-entry h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.changelog-entry h3 span {
+  padding: 3px 7px;
+  border-radius: 7px;
+  background: var(--green-light);
+  color: var(--green);
+  font-size: 11px;
+}
+.changelog-entry ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.changelog-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+}
+.changelog-footer .cancel-button {
+  width: auto;
+  min-width: 100px;
+  margin-top: 0;
+  padding: 10px 18px;
+}
