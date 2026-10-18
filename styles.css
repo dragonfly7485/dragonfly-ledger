@@ -1704,3 +1704,69 @@ dialog select {
   .section-heading .date-trigger { max-width: 56%; padding: 8px; font-size: 14px; }
   .calendar-dialog { padding: 14px; }
 }
+
+
+/* 消費分析與遊戲化成就 */
+.analytics-page { display: grid; gap: 14px; margin-bottom: 28px; }
+.analytics-page > .section-heading { margin-bottom: 0; }
+.analytics-hero { overflow: hidden; background: linear-gradient(135deg, var(--card), var(--surface-soft)); }
+.analytics-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.analytics-kicker, .analytics-month { color: var(--muted); font-size: 12px; font-weight: 700; }
+.analytics-total { display: block; margin: 7px 0 2px; font-size: clamp(26px, 7vw, 34px); line-height: 1.3; letter-spacing: -0.5px; overflow-wrap: anywhere; }
+.analytics-change { margin: 5px 0 18px; color: var(--muted); font-size: 12px; }
+.analytics-change.is-up { color: var(--red); }
+.analytics-change.is-down { color: var(--green); }
+.analytics-change.is-even { color: var(--muted); }
+.analytics-stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; padding-top: 15px; border-top: 1px solid var(--border); }
+.analytics-stat-grid > div { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
+.analytics-stat-grid span { color: var(--muted); font-size: 11px; }
+.analytics-stat-grid strong { font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.analytics-card { display: grid; gap: 13px; }
+.analytics-card h3 { margin: 0; font-size: 15px; }
+.analytics-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.analytics-card-heading .budget-subtitle { margin-bottom: 0; }
+.monthly-trend { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; min-height: 170px; align-items: stretch; }
+.trend-column { display: grid; grid-template-rows: 30px minmax(70px, 1fr) 22px; gap: 7px; min-width: 0; text-align: center; }
+.trend-amount { display: flex; align-items: flex-end; justify-content: center; min-width: 0; overflow-wrap: anywhere; color: var(--muted); font-size: 9px; line-height: 1.2; }
+.trend-track { display: flex; align-items: flex-end; justify-content: center; min-height: 70px; padding: 3px; border-radius: 10px; background: var(--surface-soft); }
+.trend-bar { display: block; width: 100%; min-height: 3px; border-radius: 7px; background: #9bb7a5; transition: height .25s ease; }
+.trend-column.selected .trend-bar { background: var(--green); }
+.trend-column.selected .trend-label { color: var(--green); font-weight: 800; }
+.trend-label { color: var(--muted); font-size: 11px; }
+.category-insight { display: grid; gap: 10px; }
+.insight-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; font-size: 12px; }
+.insight-row > span { color: var(--muted); }
+.insight-row > strong { text-align: right; }
+.insight-meter, .level-track { height: 9px; overflow: hidden; border-radius: 999px; background: var(--surface-soft); }
+.insight-meter > span, .level-track > span { display: block; height: 100%; border-radius: inherit; background: var(--green); transition: width .25s ease; }
+.insight-caption { margin: 0; color: var(--muted); font-size: 11px; }
+.insight-mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 3px 0; }
+.insight-mini-grid > div { display: grid; gap: 4px; padding: 11px; border-radius: 12px; background: var(--surface-soft); }
+.insight-mini-grid span { color: var(--muted); font-size: 11px; }
+.insight-mini-grid strong { font-size: 14px; overflow-wrap: anywhere; }
+.analytics-empty { margin: 0; color: var(--muted); font-size: 12px; }
+.quest-chip { padding: 5px 9px; border-radius: 999px; background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 800; }
+.dragonfly-level { display: grid; gap: 11px; }
+.level-row { display: flex; align-items: center; gap: 12px; }
+.level-emblem { display: grid; width: 48px; height: 48px; flex: 0 0 48px; place-items: center; border-radius: 16px; background: var(--green-dark); color: #fff; font-size: 21px; font-weight: 900; }
+.level-copy { display: grid; min-width: 0; gap: 2px; }
+.level-copy > span, .level-copy small { color: var(--muted); font-size: 11px; }
+.level-copy > strong { font-size: 19px; line-height: 1.25; }
+.achievement-grid { display: grid; gap: 9px; margin-top: 4px; }
+.achievement-card { display: grid; grid-template-columns: 35px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 11px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface-soft); opacity: .72; }
+.achievement-card.unlocked { border-color: color-mix(in srgb, var(--green) 35%, var(--border)); background: var(--green-light); opacity: 1; }
+.achievement-icon { display: grid; width: 35px; height: 35px; place-items: center; border-radius: 11px; background: var(--card); font-size: 19px; }
+.achievement-card > div { display: grid; min-width: 0; gap: 2px; }
+.achievement-card strong { font-size: 12px; }
+.achievement-card small { color: var(--muted); font-size: 10px; line-height: 1.45; }
+.achievement-state { color: var(--muted); font-size: 10px; white-space: nowrap; }
+.achievement-card.unlocked .achievement-state { color: var(--green); font-weight: 800; }
+@media (max-width: 390px) {
+  .analytics-page .budget-card { padding: 15px; }
+  .analytics-stat-grid { gap: 6px; }
+  .analytics-stat-grid strong { font-size: 12px; }
+  .monthly-trend { gap: 4px; }
+  .trend-amount { font-size: 8px; }
+  .achievement-card { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 7px; padding: 9px; }
+  .achievement-icon { width: 32px; height: 32px; }
+}
