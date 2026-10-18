@@ -1017,6 +1017,7 @@ function openForm(record = null) {
 
   $("#formTitle").textContent = record ? "編輯紀錄" : "新增紀錄";
   $("#amount").value = record ? record.amount : "";
+  resetCalculatorState();
   $("#transactionDate").value = record ? record.date : selectedDate();
   syncDateLabels();
   $("#note").value = record ? record.note || "" : "";
@@ -1037,7 +1038,114 @@ function openForm(record = null) {
 function closeForm() {
   $("#transactionDialog").close();
   editingId = null;
+  resetCalculatorState();
 }
+
+/* 金額計算機：結果直接同步至記帳金額欄位。 */
+let calculatorStoredValue = null;
+let calculatorOperator = null;
+let calculatorResetDisplay = false;
+let calculatorFirstValue = null;
+
+function resetCalculatorState() {
+  calculatorStoredValue = null;
+  calculatorOperator = null;
+  calculatorResetDisplay = false;
+  calculatorFirstValue = null;
+  const status = $("#calculatorStatus");
+  if (status) status.textContent = "輸入金額，或使用下方計算機";
+}
+
+function calculatorNumber() {
+  const value = Number($("#amount").value);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function formatCalculatorNumber(value) {
+  if (!Number.isFinite(value)) return "";
+  const rounded = Math.round((value + Number.EPSILON) * 100000000) / 100000000;
+  return String(rounded);
+}
+
+function performCalculation(left, operator, right) {
+  if (operator === "+") return left + right;
+  if (operator === "−") return left - right;
+  if (operator === "×") return left * right;
+  if (operator === "÷") {
+    if (right === 0) throw new Error("不能除以 0");
+    return left / right;
+  }
+  return right;
+}
+
+function handleCalculatorAction(button) {
+  const action = button.dataset.calc;
+  const amount = $("#amount");
+  const status = $("#calculatorStatus");
+  const value = button.dataset.value;
+
+  if (action === "clear") {
+    amount.value = "";
+    resetCalculatorState();
+    return;
+  }
+
+  if (action === "digit") {
+    amount.value = calculatorResetDisplay || amount.value === "0"
+      ? value
+      : amount.value + value;
+    calculatorResetDisplay = false;
+  } else if (action === "decimal") {
+    if (calculatorResetDisplay || amount.value === "") amount.value = "0";
+    if (!amount.value.includes(".")) amount.value += ".";
+    calculatorResetDisplay = false;
+  } else if (action === "backspace") {
+    amount.value = calculatorResetDisplay ? "" : amount.value.slice(0, -1);
+    calculatorResetDisplay = false;
+  } else if (action === "sign") {
+    if (amount.value && Number(amount.value) !== 0) {
+      amount.value = formatCalculatorNumber(-Number(amount.value));
+    }
+  } else if (action === "operator") {
+    const current = calculatorNumber();
+    try {
+      if (calculatorOperator && !calculatorResetDisplay) {
+        const result = performCalculation(calculatorStoredValue, calculatorOperator, current);
+        amount.value = formatCalculatorNumber(result);
+        calculatorStoredValue = result;
+      } else {
+        calculatorStoredValue = current;
+      }
+      calculatorFirstValue = calculatorStoredValue;
+      calculatorOperator = value;
+      calculatorResetDisplay = true;
+      status.textContent = `${formatCalculatorNumber(calculatorStoredValue)} ${value}`;
+    } catch (error) {
+      status.textContent = error.message;
+      return;
+    }
+  } else if (action === "equals") {
+    if (!calculatorOperator) return;
+    try {
+      const result = performCalculation(calculatorStoredValue, calculatorOperator, calculatorNumber());
+      amount.value = formatCalculatorNumber(result);
+      status.textContent = `${formatCalculatorNumber(calculatorFirstValue)} ${calculatorOperator} ${formatCalculatorNumber(calculatorNumber())} =`;
+      calculatorStoredValue = null;
+      calculatorOperator = null;
+      calculatorFirstValue = null;
+      calculatorResetDisplay = true;
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  }
+
+  if (action === "digit" || action === "decimal" || action === "backspace" || action === "sign") {
+    status.textContent = calculatorOperator
+      ? `${formatCalculatorNumber(calculatorStoredValue)} ${calculatorOperator}`
+      : "計算結果會填入金額欄位";
+  }
+}
+
 
 function saveForm(event) {
   event.preventDefault();
@@ -1306,6 +1414,48 @@ function importBackup(file) {
   reader.readAsText(file);
 }
 
+function resetAllData() {
+  const firstConfirm = window.confirm(
+    "確定要全部重置嗎？\n\n這會刪除目前裝置上的所有記帳紀錄與所有月份的預算，無法直接復原。\n建議先使用「匯出備份檔」。"
+  );
+  if (!firstConfirm) return;
+
+  const confirmation = window.prompt("最後確認：請輸入 RESET 才會清除資料。");
+  if (confirmation !== "RESET") {
+    alert("已取消重置，資料沒有變更。");
+    return;
+  }
+
+  const previousRecordsRaw = localStorage.getItem(STORAGE_KEY);
+  const previousBudgetsRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
+  const previousRecords = records;
+  const previousBudgets = budgets;
+
+  try {
+    localStorage.setItem(STORAGE_KEY, "[]");
+    localStorage.setItem(BUDGET_STORAGE_KEY, "{}");
+  } catch (error) {
+    try {
+      if (previousRecordsRaw === null) localStorage.removeItem(STORAGE_KEY);
+      else localStorage.setItem(STORAGE_KEY, previousRecordsRaw);
+      if (previousBudgetsRaw === null) localStorage.removeItem(BUDGET_STORAGE_KEY);
+      else localStorage.setItem(BUDGET_STORAGE_KEY, previousBudgetsRaw);
+    } catch (rollbackError) {
+      console.error("重置失敗後還原原始資料時發生錯誤：", rollbackError);
+    }
+    records = previousRecords;
+    budgets = previousBudgets;
+    alert("重置失敗，已嘗試保留原有資料。請確認裝置儲存空間。");
+    return;
+  }
+
+  records = [];
+  budgets = {};
+  render();
+  renderBudget();
+  alert("已重置所有記帳紀錄與預算。外觀主題等設定不受影響。");
+}
+
 /* =========================
    初始化
    ========================= */
@@ -1336,6 +1486,18 @@ function initialize() {
   $("#closeDialog").addEventListener("click", closeForm);
   $("#cancelDialog").addEventListener("click", closeForm);
   $("#transactionForm").addEventListener("submit", saveForm);
+  $("#calculator")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-calc]");
+    if (button) handleCalculatorAction(button);
+  });
+  $("#amount").addEventListener("input", () => {
+    calculatorStoredValue = null;
+    calculatorOperator = null;
+    calculatorFirstValue = null;
+    calculatorResetDisplay = false;
+    const status = $("#calculatorStatus");
+    if (status) status.textContent = "手動輸入金額";
+  });
   $("#cancelDeleteDialog").addEventListener("click", closeDeleteDialog);
   $("#confirmDeleteRecord").addEventListener("click", confirmDeleteRecord);
 
@@ -1412,6 +1574,7 @@ function initialize() {
     const file = event.target.files?.[0];
     if (file) importBackup(file);
   });
+  $("#resetAllBtn")?.addEventListener("click", resetAllData);
 
   // 點擊版本號查看更新紀錄。
   const changelogDialog = $("#changelogDialog");
