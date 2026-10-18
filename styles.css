@@ -1607,28 +1607,31 @@ dialog select {
 .budget-feedback {
   position: fixed;
   z-index: 1000;
+  top: 50%;
   left: 50%;
-  bottom: calc(22px + env(safe-area-inset-bottom));
+  bottom: auto;
   width: max-content;
   max-width: min(92vw, 560px);
-  padding: 13px 17px;
+  padding: 16px 20px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--card);
   color: var(--text);
   box-shadow: 0 12px 34px rgba(0, 0, 0, .18);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.7;
   text-align: center;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, 12px);
+  transform: translate(-50%, calc(-50% + 12px));
   transition: opacity .2s ease, transform .2s ease;
 }
 
 .budget-feedback.show {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translate(-50%, -50%);
 }
 
 /* iOS Safari：觸控裝置無論橫豎方向，聚焦輸入欄位時都保持 16px，
@@ -1655,7 +1658,7 @@ dialog select {
   line-height: 1.35; text-align: left; overflow-wrap: anywhere;
   -webkit-appearance: none; appearance: none;
 }
-.date-trigger::after { content: "▦"; flex: 0 0 auto; color: var(--muted); font-size: 18px; }
+.date-trigger::after { content: none; }
 .section-heading .date-trigger {
   width: auto; min-width: 0; max-width: 58%; min-height: 42px;
   padding: 9px 10px; font-size: 15px; white-space: nowrap;
