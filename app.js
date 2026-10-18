@@ -1410,19 +1410,28 @@ function resetAllData() {
   const dialog = $("#resetDialog");
   const input = $("#resetConfirmInput");
   const confirmButton = $("#confirmResetBtn");
+
   if (!dialog || !input || !confirmButton) {
-    alert("重置視窗載入失敗，資料沒有變更。請重新整理頁面後再試。");
+    alert("重置確認視窗未載入，資料沒有變更。請重新整理後再試。");
     return;
   }
+
   input.value = "";
   confirmButton.disabled = true;
-  dialog.showModal();
-  requestAnimationFrame(() => input.focus());
+  try {
+    if (!dialog.open) dialog.showModal();
+    input.focus({ preventScroll: true });
+  } catch (error) {
+    console.error("無法開啟重置確認視窗：", error);
+    const typed = window.prompt("此裝置無法開啟確認視窗。若要清除本機所有記帳紀錄與預算，請輸入 RESET。");
+    if (typed === "RESET") executeResetAllData(true);
+  }
 }
 
-function executeResetAllData() {
+function executeResetAllData(useFallback = false) {
   const input = $("#resetConfirmInput");
-  if (input?.value.trim() !== "RESET") return;
+  const confirmation = useFallback ? "RESET" : input?.value.trim();
+  if (confirmation !== "RESET") return;
 
   const previousRecordsRaw = localStorage.getItem(STORAGE_KEY);
   const previousBudgetsRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
@@ -1486,18 +1495,22 @@ function initialize() {
   $("#closeDialog").addEventListener("click", closeForm);
   $("#cancelDialog").addEventListener("click", closeForm);
   $("#transactionForm").addEventListener("submit", saveForm);
+  const amountInput = $("#amount");
+  const calculator = $("#calculator");
+  amountInput?.addEventListener("click", () => {
+    calculator?.classList.remove("calculator-hidden");
+    amountInput.setAttribute("aria-expanded", "true");
+  });
+  amountInput?.addEventListener("focus", () => {
+    calculator?.classList.remove("calculator-hidden");
+    amountInput.setAttribute("aria-expanded", "true");
+  });
   $("#calculator")?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-calc]");
     if (button) handleCalculatorAction(button);
   });
-  $("#amount").addEventListener("input", () => {
-    calculatorStoredValue = null;
-    calculatorOperator = null;
-    calculatorFirstValue = null;
-    calculatorResetDisplay = false;
-    const status = $("#calculatorStatus");
-    if (status) status.textContent = "手動輸入金額";
-  });
+  // 金額欄位是唯讀顯示，不會叫出手機原生鍵盤。
+
   $("#cancelDeleteDialog").addEventListener("click", closeDeleteDialog);
   $("#confirmDeleteRecord").addEventListener("click", confirmDeleteRecord);
 
@@ -1574,13 +1587,17 @@ function initialize() {
     const file = event.target.files?.[0];
     if (file) importBackup(file);
   });
-  $("#resetAllBtn")?.addEventListener("click", resetAllData);
   $("#cancelResetBtn")?.addEventListener("click", () => $("#resetDialog")?.close());
   $("#resetConfirmInput")?.addEventListener("input", (event) => {
     const valid = event.target.value.trim() === "RESET";
     $("#confirmResetBtn").disabled = !valid;
   });
   $("#confirmResetBtn")?.addEventListener("click", executeResetAllData);
+
+  // 使用事件委派，避免設定頁重繪後「全部重置」失去點擊事件。
+  document.addEventListener("click", (event) => {
+    if (event.target.closest("#resetAllBtn")) resetAllData();
+  });
 
   // 點擊版本號查看更新紀錄。
   const changelogDialog = $("#changelogDialog");
