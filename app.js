@@ -245,6 +245,7 @@ function initializeMenu() {
   const pages = {
     home: $("#homeSection"),
     budget: $("#budgetSection"),
+    records: $("#recordsSection"),
     settings: $("#settingsSection")
   };
 
@@ -318,6 +319,8 @@ function initializeMenu() {
       render();
     } else if (pageName === "budget") {
       renderBudget();
+    } else if (pageName === "records") {
+      renderQueryRecords();
     }
   }
 
@@ -508,6 +511,63 @@ function renderDay() {
           <strong class="transaction-amount ${record.type}">
             ${sign}${money(record.amount)}
           </strong>
+          <div class="transaction-actions">
+            <button type="button" data-edit="${escapeHTML(record.id)}">編輯</button>
+            <button type="button" data-delete="${escapeHTML(record.id)}">刪除</button>
+          </div>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+/* =========================
+   查詢紀錄
+   ========================= */
+
+function renderQueryRecords() {
+  const list = $("#queryRecordsList");
+  const count = $("#queryRecordCount");
+  const monthLabel = $("#queryMonthLabel");
+  if (!list || !count || !monthLabel) return;
+
+  monthLabel.textContent = currentMonth();
+  const minText = $("#queryAmountMin")?.value ?? "";
+  const maxText = $("#queryAmountMax")?.value ?? "";
+  const minAmount = minText === "" ? null : Number(minText);
+  const maxAmount = maxText === "" ? null : Number(maxText);
+  const keyword = ($("#queryNote")?.value ?? "").trim().toLocaleLowerCase();
+  const payment = $("#queryPayment")?.value ?? "";
+
+  const results = getMonthRecords().filter((record) => {
+    const amount = Number(record.amount) || 0;
+    if (minAmount !== null && Number.isFinite(minAmount) && amount < minAmount) return false;
+    if (maxAmount !== null && Number.isFinite(maxAmount) && amount > maxAmount) return false;
+    if (keyword && !(typeof record.note === "string" && record.note.toLocaleLowerCase().includes(keyword))) return false;
+    if (payment && (record.payment || "其他") !== payment) return false;
+    return true;
+  }).sort((a, b) =>
+    (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0)
+  );
+
+  count.textContent = `${results.length} 筆紀錄`;
+  if (!results.length) {
+    list.innerHTML = `<div class="empty-state"><span>🔎</span>找不到符合條件的紀錄<br><small>試著調整金額、備註關鍵字或付款方式。</small></div>`;
+    return;
+  }
+
+  list.innerHTML = results.map((record) => {
+    const sign = record.type === "income" ? "+" : "-";
+    const icon = categoryIcons[record.category] || "🧾";
+    const detail = [record.payment || "其他", record.note].filter(Boolean).join(" · ");
+    return `
+      <article class="transaction-item">
+        <div class="transaction-icon">${icon}</div>
+        <div class="transaction-info">
+          <strong>${escapeHTML(record.category)}</strong>
+          <span>${escapeHTML(record.date)} · ${escapeHTML(detail || "未填寫備註")}</span>
+        </div>
+        <div class="transaction-right">
+          <strong class="transaction-amount ${record.type}">${sign}${money(record.amount)}</strong>
           <div class="transaction-actions">
             <button type="button" data-edit="${escapeHTML(record.id)}">編輯</button>
             <button type="button" data-delete="${escapeHTML(record.id)}">刪除</button>
@@ -736,6 +796,55 @@ function renderExpensePie(monthRecords) {
 }
 
 /* =========================
+   付款方式支出圓餅圖
+   ========================= */
+
+function renderPaymentPie(monthRecords = getMonthRecords()) {
+  const pie = $("#paymentPie");
+  const legend = $("#paymentLegend");
+  if (!pie || !legend) return;
+
+  const totals = {};
+  monthRecords.filter((record) => record.type === "expense").forEach((record) => {
+    const method = paymentMethods.includes(record.payment) ? record.payment : "其他";
+    totals[method] = (totals[method] || 0) + (Number(record.amount) || 0);
+  });
+
+  const entries = paymentMethods.map((method, index) => ({
+    method, amount: totals[method] || 0, color: chartColors[index % chartColors.length]
+  })).filter((item) => item.amount > 0);
+  const total = entries.reduce((result, item) => result + item.amount, 0);
+
+  if (total <= 0) {
+    pie.style.background = "var(--surface-soft, #e8ece9)";
+    pie.setAttribute("aria-label", "本月尚無支出");
+    legend.innerHTML = `<p class="expense-legend-empty">本月還沒有支出，新增支出紀錄後就會顯示付款方式比例。</p>`;
+    return;
+  }
+
+  let accumulated = 0;
+  const stops = entries.map((item) => {
+    const start = accumulated;
+    accumulated += item.amount / total * 100;
+    return `${item.color} ${start}% ${accumulated}%`;
+  });
+  pie.style.background = `conic-gradient(${stops.join(", ")})`;
+  pie.setAttribute("aria-label", `本月支出總額 ${formatTWD(total)}，依 ${entries.length} 種付款方式分類`);
+
+  legend.innerHTML = entries.map((item) => {
+    const percentage = item.amount / total * 100;
+    return `
+      <div class="expense-legend-row">
+        <div class="expense-legend-name">
+          <span class="expense-legend-dot" style="background:${item.color}"></span>
+          <span>${escapeHTML(item.method)} <span style="color:var(--muted,#778078)">${percentage.toFixed(1)}%</span></span>
+        </div>
+        <strong class="expense-legend-value">${formatTWD(item.amount)}</strong>
+      </div>`;
+  }).join("");
+}
+
+/* =========================
    儲存預算
    ========================= */
 
@@ -792,6 +901,8 @@ function saveCategoryBudget(category, value) {
 function render() {
   renderMonth();
   renderDay();
+  renderPaymentPie(getMonthRecords());
+  renderQueryRecords();
 }
 
 function openForm(record = null) {
@@ -1024,6 +1135,10 @@ function initialize() {
     `<option value="${escapeHTML(method)}">${escapeHTML(method)}</option>`
   ).join("");
 
+  $("#queryPayment").innerHTML = `<option value="">全部付款方式</option>` + paymentMethods.map((method) =>
+    `<option value="${escapeHTML(method)}">${escapeHTML(method)}</option>`
+  ).join("");
+
   updateCategoryOptions();
 
   // 新增與編輯視窗。
@@ -1044,25 +1159,31 @@ function initialize() {
   $("#monthPicker").addEventListener("change", render);
   $("#datePicker").addEventListener("change", renderDay);
 
-  // 帳目編輯與刪除。
-  $("#transactionList").addEventListener("click", (event) => {
+  // 查詢條件即時套用，可同時使用多個條件。
+  ["#queryAmountMin", "#queryAmountMax", "#queryNote", "#queryPayment"].forEach((selector) => {
+    $(selector).addEventListener("input", renderQueryRecords);
+    $(selector).addEventListener("change", renderQueryRecords);
+  });
+  $("#clearQueryBtn").addEventListener("click", () => {
+    $("#queryAmountMin").value = "";
+    $("#queryAmountMax").value = "";
+    $("#queryNote").value = "";
+    $("#queryPayment").value = "";
+    renderQueryRecords();
+  });
+
+  // 首頁與查詢結果共用編輯、刪除事件。
+  const handleRecordActions = (event) => {
     const editButton = event.target.closest("[data-edit]");
     const deleteButton = event.target.closest("[data-delete]");
-
     if (editButton) {
-      const record = records.find(
-        (item) => item.id === editButton.dataset.edit
-      );
-
-      if (record) {
-        openForm(record);
-      }
+      const record = records.find((item) => item.id === editButton.dataset.edit);
+      if (record) openForm(record);
     }
-
-    if (deleteButton) {
-      deleteRecord(deleteButton.dataset.delete);
-    }
-  });
+    if (deleteButton) deleteRecord(deleteButton.dataset.delete);
+  };
+  $("#transactionList").addEventListener("click", handleRecordActions);
+  $("#queryRecordsList").addEventListener("click", handleRecordActions);
 
   // 每月總預算。
   $("#budgetTotal").addEventListener("change", (event) => {

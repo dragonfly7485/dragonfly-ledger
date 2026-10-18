@@ -68,6 +68,15 @@
       <button
         class="menu-item"
         type="button"
+        data-page-target="records"
+      >
+        <span class="menu-item-icon" aria-hidden="true">⌕</span>
+        <span>查詢紀錄</span>
+      </button>
+
+      <button
+        class="menu-item"
+        type="button"
         data-page-target="settings"
       >
         <span class="menu-item-icon" aria-hidden="true">⚙</span>
@@ -191,6 +200,21 @@
         </div>
       </section>
 
+      <!-- 付款方式支出分析 -->
+      <section id="paymentAnalysisSection" class="analysis-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PAYMENT ANALYSIS</p>
+            <h2>💳 付款方式支出比例</h2>
+          </div>
+        </div>
+        <div class="budget-card">
+          <p class="budget-subtitle">只統計所選月份的支出，不包含收入</p>
+          <div id="paymentPie" class="expense-pie payment-pie" role="img" aria-label="本月付款方式支出圓餅圖"></div>
+          <div id="paymentLegend" class="expense-legend"></div>
+        </div>
+      </section>
+
       <!-- 記帳明細 -->
       <section class="records-section">
         <div class="section-heading">
@@ -303,6 +327,48 @@
 
         <div id="categoryBudgetFields"></div>
       </div>
+    </section>
+
+    <!-- ========================
+         查詢紀錄頁
+         ======================== -->
+    <section id="recordsSection" class="records-section query-section" hidden aria-labelledby="recordsTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">SEARCH TRANSACTIONS</p>
+          <h2 id="recordsTitle">🔎 查詢紀錄</h2>
+        </div>
+        <span id="queryMonthLabel" class="query-month-label"></span>
+      </div>
+      <div class="budget-card query-card">
+        <p class="budget-subtitle">範圍為首頁所選月份，可同時使用多個條件。</p>
+        <div class="query-filter-grid">
+          <div class="query-filter-field">
+            <label for="queryAmountMin">最低金額</label>
+            <input id="queryAmountMin" type="number" min="0" step="0.01" inputmode="decimal" placeholder="不限">
+          </div>
+          <div class="query-filter-field">
+            <label for="queryAmountMax">最高金額</label>
+            <input id="queryAmountMax" type="number" min="0" step="0.01" inputmode="decimal" placeholder="不限">
+          </div>
+          <div class="query-filter-field query-filter-wide">
+            <label for="queryNote">備註關鍵字</label>
+            <input id="queryNote" type="search" maxlength="100" placeholder="例如：午餐、交通">
+          </div>
+          <div class="query-filter-field query-filter-wide">
+            <label for="queryPayment">付款方式</label>
+            <select id="queryPayment"><option value="">全部付款方式</option></select>
+          </div>
+        </div>
+        <div class="query-actions">
+          <button id="clearQueryBtn" class="cancel-button" type="button">清除條件</button>
+        </div>
+      </div>
+      <div class="list-heading query-results-heading">
+        <strong>查詢結果</strong>
+        <span id="queryRecordCount">0 筆紀錄</span>
+      </div>
+      <div id="queryRecordsList" class="transaction-list"></div>
     </section>
 
     <!-- ========================
