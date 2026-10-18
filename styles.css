@@ -1630,9 +1630,9 @@ dialog select {
   transform: translate(-50%, 0);
 }
 
-/* iOS Safari：所有可輸入欄位至少 16px，避免聚焦時自動縮放。
-   使用 !important 覆蓋前面較具體的欄位樣式。 */
-@media (max-width: 768px) {
+/* iOS Safari：觸控裝置無論橫豎方向，聚焦輸入欄位時都保持 16px，
+   避免 Safari 因字體過小而自動放大視窗。 */
+@media (hover: none) and (pointer: coarse) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   select,
   textarea,
@@ -1640,5 +1640,6 @@ dialog select {
   select:focus,
   textarea:focus {
     font-size: 16px !important;
+    zoom: 1 !important;
   }
 }
