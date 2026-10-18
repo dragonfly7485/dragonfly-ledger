@@ -1680,6 +1680,7 @@ dialog select {
   display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px;
 }
 .calendar-weekdays { margin-bottom: 7px; color: var(--muted); font-size: 13px; text-align: center; }
+.calendar-weekdays[hidden] { display: none; }
 .calendar-weekdays span { padding: 6px 0; }
 .calendar-cell {
   display: grid; min-width: 0; min-height: 40px; padding: 0; place-items: center;
