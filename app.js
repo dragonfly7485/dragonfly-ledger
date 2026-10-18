@@ -1127,9 +1127,10 @@ function handleCalculatorAction(button) {
   } else if (action === "equals") {
     if (!calculatorOperator) return;
     try {
-      const result = performCalculation(calculatorStoredValue, calculatorOperator, calculatorNumber());
+      const rightValue = calculatorNumber();
+      const result = performCalculation(calculatorStoredValue, calculatorOperator, rightValue);
+      status.textContent = `${formatCalculatorNumber(calculatorFirstValue)} ${calculatorOperator} ${formatCalculatorNumber(rightValue)} =`;
       amount.value = formatCalculatorNumber(result);
-      status.textContent = `${formatCalculatorNumber(calculatorFirstValue)} ${calculatorOperator} ${formatCalculatorNumber(calculatorNumber())} =`;
       calculatorStoredValue = null;
       calculatorOperator = null;
       calculatorFirstValue = null;
