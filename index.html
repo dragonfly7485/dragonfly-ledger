@@ -127,11 +127,8 @@
             <h2>本月收支總覽</h2>
           </div>
 
-          <input
-            id="monthPicker"
-            type="month"
-            aria-label="選擇月份"
-          >
+          <input id="monthPicker" type="hidden" value="">
+          <button id="monthPickerButton" class="date-trigger month-trigger" type="button" aria-label="選擇月份">選擇月份</button>
         </div>
 
         <div class="summary-grid">
@@ -223,11 +220,8 @@
             <h2>記帳明細</h2>
           </div>
 
-          <input
-            id="datePicker"
-            type="date"
-            aria-label="選擇日期"
-          >
+          <input id="datePicker" type="hidden" value="">
+          <button id="datePickerButton" class="date-trigger" type="button" aria-label="選擇日期">選擇日期</button>
         </div>
 
         <div class="daily-summary">
@@ -429,6 +423,22 @@
   <!-- 新增與編輯紀錄視窗 -->
   <div id="budgetFeedback" class="budget-feedback" role="status" aria-live="polite"></div>
 
+  <dialog id="calendarDialog" class="calendar-dialog" aria-labelledby="calendarTitle">
+    <div class="calendar-heading">
+      <button id="calendarPrev" class="calendar-nav" type="button" aria-label="上一個">‹</button>
+      <h2 id="calendarTitle">選擇日期</h2>
+      <button id="calendarNext" class="calendar-nav" type="button" aria-label="下一個">›</button>
+    </div>
+    <div id="calendarWeekdays" class="calendar-weekdays" aria-hidden="true">
+      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+    </div>
+    <div id="calendarGrid" class="calendar-grid"></div>
+    <div class="calendar-footer">
+      <button id="calendarToday" class="calendar-secondary" type="button">今天</button>
+      <button id="calendarCancel" class="calendar-secondary" type="button">取消</button>
+    </div>
+  </dialog>
+
   <dialog id="deleteDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
     <div class="delete-dialog-icon" aria-hidden="true">🗑️</div>
     <h2 id="deleteDialogTitle">刪除這筆紀錄？</h2>
@@ -487,8 +497,9 @@
       <label class="field-label" for="category">分類</label>
       <select id="category" required></select>
 
-      <label class="field-label" for="transactionDate">日期</label>
-      <input id="transactionDate" type="date" required>
+      <label class="field-label" for="transactionDateButton">日期</label>
+      <input id="transactionDate" type="hidden" value="">
+      <button id="transactionDateButton" class="date-trigger transaction-date-trigger" type="button" aria-label="選擇記帳日期">選擇日期</button>
 
       <label class="field-label" for="payment">付款方式</label>
       <select id="payment" required>
