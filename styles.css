@@ -1793,3 +1793,67 @@ dialog select {
   margin-top: 0;
   padding: 10px 18px;
 }
+
+
+/* v2.0.2：金額計算機與全部重置 */
+.calculator {
+  display: grid;
+  gap: 9px;
+  margin: 10px 0 16px;
+}
+.calculator-status {
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.calculator-grid button {
+  min-width: 0;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+.calculator-grid button:active { transform: scale(.97); }
+.calculator-grid .calculator-function { background: var(--control-background); }
+.calculator-grid .calculator-operator {
+  background: var(--green-light);
+  color: var(--green);
+}
+.calculator-grid .calculator-equals {
+  grid-row: span 2;
+  background: var(--green-dark);
+  color: #fff;
+}
+.reset-button {
+  width: 100%;
+  min-height: 47px;
+  border: 1px solid #c84e48;
+  border-radius: 12px;
+  background: #fff0ef;
+  color: #a52e29;
+  font-weight: 800;
+}
+.reset-button:focus-visible {
+  outline: 2px solid #c84e48;
+  outline-offset: 2px;
+}
+.reset-warning {
+  color: #b13b35;
+}
+:root[data-theme="dark"] .reset-button {
+  border-color: #a9443f;
+  background: #482c2b;
+  color: #ffaaa4;
+}
