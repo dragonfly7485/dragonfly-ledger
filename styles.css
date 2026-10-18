@@ -701,7 +701,7 @@ section {
   background: #fbfcfb;
   color: var(--text);
   font-size: 13px;
-  text-align: right;
+  text-align: center;
 }
 
 .category-budget-row input::placeholder {
@@ -1535,4 +1535,97 @@ dialog select {
     width: calc(100% - 24px);
     padding: 18px;
   }
+}
+
+/* 自訂刪除確認與記帳後預算提示 */
+.delete-dialog {
+  width: min(390px, calc(100% - 32px));
+  padding: 24px;
+}
+
+.delete-dialog-icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  margin: 0 auto 14px;
+  border-radius: 16px;
+  background: var(--red-light);
+  font-size: 25px;
+}
+
+.delete-dialog h2,
+.delete-dialog p {
+  text-align: center;
+}
+
+.delete-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.delete-dialog-message {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.delete-record-summary {
+  margin: 14px 0 20px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-soft, #f3f5f3);
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.delete-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.delete-dialog-actions button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.delete-cancel-button {
+  background: var(--surface-soft, #f0f2f0);
+  color: var(--text);
+}
+
+.delete-confirm-button {
+  background: var(--red);
+  color: #fff;
+}
+
+.budget-feedback {
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  width: max-content;
+  max-width: min(92vw, 560px);
+  padding: 13px 17px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .18);
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.budget-feedback.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
