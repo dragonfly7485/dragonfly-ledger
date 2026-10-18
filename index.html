@@ -427,6 +427,20 @@
   </main>
 
   <!-- 新增與編輯紀錄視窗 -->
+  <div id="budgetFeedback" class="budget-feedback" role="status" aria-live="polite"></div>
+
+  <dialog id="deleteDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
+    <div class="delete-dialog-icon" aria-hidden="true">🗑️</div>
+    <h2 id="deleteDialogTitle">刪除這筆紀錄？</h2>
+    <p class="delete-dialog-message">刪除後無法直接復原，請確認是否繼續。</p>
+    <p id="deleteRecordSummary" class="delete-record-summary"></p>
+    <div class="delete-dialog-actions">
+      <button id="cancelDeleteDialog" class="delete-cancel-button" type="button">取消</button>
+      <button id="confirmDeleteRecord" class="delete-confirm-button" type="button">確認刪除</button>
+    </div>
+    <button id="closeDeleteDialog" class="close-button" type="button" aria-label="關閉" style="position:absolute;right:12px;top:12px;display:none">×</button>
+  </dialog>
+
   <dialog id="transactionDialog">
     <form id="transactionForm">
       <div class="dialog-heading">
