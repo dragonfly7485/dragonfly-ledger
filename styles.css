@@ -2035,3 +2035,34 @@ dialog select {
   outline: 2px solid var(--green);
   outline-offset: 2px;
 }
+
+
+/* 修正計算機按鍵排列與 iOS 重置視窗縮放 */
+.calculator-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.calculator-grid button {
+  min-width: 0;
+  width: 100%;
+  min-height: 50px;
+  padding: 8px 4px;
+  font-size: 18px;
+}
+.calculator-grid .calculator-zero { grid-column: auto; }
+.calculator-grid .calculator-equals { grid-row: auto; }
+.reset-dialog {
+  box-sizing: border-box;
+  max-width: calc(100vw - 28px);
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.reset-confirm-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  font-size: 16px !important;
+  line-height: 1.4;
+  -webkit-appearance: none;
+  appearance: none;
+}
