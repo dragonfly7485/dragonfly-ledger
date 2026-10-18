@@ -1070,11 +1070,6 @@ function formatCalculatorNumber(value) {
 function performCalculation(left, operator, right) {
   if (operator === "+") return left + right;
   if (operator === "−") return left - right;
-  if (operator === "×") return left * right;
-  if (operator === "÷") {
-    if (right === 0) throw new Error("不能除以 0");
-    return left / right;
-  }
   return right;
 }
 
@@ -1102,10 +1097,6 @@ function handleCalculatorAction(button) {
   } else if (action === "backspace") {
     amount.value = calculatorResetDisplay ? "" : amount.value.slice(0, -1);
     calculatorResetDisplay = false;
-  } else if (action === "sign") {
-    if (amount.value && Number(amount.value) !== 0) {
-      amount.value = formatCalculatorNumber(-Number(amount.value));
-    }
   } else if (action === "operator") {
     const current = calculatorNumber();
     try {
@@ -1140,7 +1131,7 @@ function handleCalculatorAction(button) {
     }
   }
 
-  if (action === "digit" || action === "decimal" || action === "backspace" || action === "sign") {
+  if (action === "digit" || action === "decimal" || action === "backspace") {
     status.textContent = calculatorOperator
       ? `${formatCalculatorNumber(calculatorStoredValue)} ${calculatorOperator}`
       : "計算結果會填入金額欄位";
@@ -1416,16 +1407,22 @@ function importBackup(file) {
 }
 
 function resetAllData() {
-  const firstConfirm = window.confirm(
-    "確定要全部重置嗎？\n\n這會刪除目前裝置上的所有記帳紀錄與所有月份的預算，無法直接復原。\n建議先使用「匯出備份檔」。"
-  );
-  if (!firstConfirm) return;
-
-  const confirmation = window.prompt("最後確認：請輸入 RESET 才會清除資料。");
-  if (confirmation !== "RESET") {
-    alert("已取消重置，資料沒有變更。");
+  const dialog = $("#resetDialog");
+  const input = $("#resetConfirmInput");
+  const confirmButton = $("#confirmResetBtn");
+  if (!dialog || !input || !confirmButton) {
+    alert("重置視窗載入失敗，資料沒有變更。請重新整理頁面後再試。");
     return;
   }
+  input.value = "";
+  confirmButton.disabled = true;
+  dialog.showModal();
+  requestAnimationFrame(() => input.focus());
+}
+
+function executeResetAllData() {
+  const input = $("#resetConfirmInput");
+  if (input?.value.trim() !== "RESET") return;
 
   const previousRecordsRaw = localStorage.getItem(STORAGE_KEY);
   const previousBudgetsRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
@@ -1446,12 +1443,14 @@ function resetAllData() {
     }
     records = previousRecords;
     budgets = previousBudgets;
+    $("#resetDialog")?.close();
     alert("重置失敗，已嘗試保留原有資料。請確認裝置儲存空間。");
     return;
   }
 
   records = [];
   budgets = {};
+  $("#resetDialog")?.close();
   render();
   renderBudget();
   alert("已重置所有記帳紀錄與預算。外觀主題等設定不受影響。");
@@ -1576,6 +1575,12 @@ function initialize() {
     if (file) importBackup(file);
   });
   $("#resetAllBtn")?.addEventListener("click", resetAllData);
+  $("#cancelResetBtn")?.addEventListener("click", () => $("#resetDialog")?.close());
+  $("#resetConfirmInput")?.addEventListener("input", (event) => {
+    const valid = event.target.value.trim() === "RESET";
+    $("#confirmResetBtn").disabled = !valid;
+  });
+  $("#confirmResetBtn")?.addEventListener("click", executeResetAllData);
 
   // 點擊版本號查看更新紀錄。
   const changelogDialog = $("#changelogDialog");
