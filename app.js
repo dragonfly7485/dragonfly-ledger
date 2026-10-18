@@ -1173,47 +1173,57 @@ function showBudgetFeedback(record) {
 }
 
 /* =========================
-   備份函式保留，不新增畫面按鈕
+   備份與還原
    ========================= */
 
 function exportBackup() {
   const backup = {
     app: "DragonflyLedger",
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
-    records
+    records,
+    budgets
   };
-
-  const blob = new Blob(
-    [JSON.stringify(backup, null, 2)],
-    { type: "application/json" }
-  );
-
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-
   link.href = url;
-  link.download = `蜻蜓牌記帳本備份-${localDate()}.json`;
+  link.download = "蜻蜓牌記帳本備份-" + localDate() + ".json";
+  document.body.append(link);
   link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
-  URL.revokeObjectURL(url);
+function isValidBackupBudgets(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return Object.entries(value).every(([month, monthBudget]) => {
+    if (!/^\d{4}-\d{2}$/.test(month)) return false;
+    if (!monthBudget || typeof monthBudget !== "object" || Array.isArray(monthBudget)) return false;
+    if (monthBudget.total !== undefined &&
+        (!Number.isFinite(Number(monthBudget.total)) || Number(monthBudget.total) < 0)) return false;
+    const categoryBudgets = monthBudget.categories === undefined ? {} : monthBudget.categories;
+    if (!categoryBudgets || typeof categoryBudgets !== "object" || Array.isArray(categoryBudgets)) return false;
+    return Object.values(categoryBudgets).every((amount) =>
+      Number.isFinite(Number(amount)) && Number(amount) >= 0
+    );
+  });
 }
 
 function importBackup(file) {
   const reader = new FileReader();
-
   reader.onload = () => {
     try {
       const backup = JSON.parse(reader.result);
-      const imported = Array.isArray(backup)
-        ? backup
-        : backup.records;
-
-      if (!Array.isArray(imported)) {
-        throw new Error("備份格式不正確");
+      if (backup && !Array.isArray(backup) &&
+          backup.app !== undefined && backup.app !== "DragonflyLedger") {
+        throw new Error("這不是蜻蜓牌記帳本的備份檔");
       }
 
-      const valid = imported.every((record) =>
+      const imported = Array.isArray(backup) ? backup : backup?.records;
+      if (!Array.isArray(imported)) throw new Error("備份格式不正確，找不到記帳紀錄");
+
+      const validRecords = imported.every((record) =>
         record &&
         typeof record.id === "string" &&
         ["income", "expense"].includes(record.type) &&
@@ -1221,51 +1231,78 @@ function importBackup(file) {
         Number(record.amount) > 0 &&
         typeof record.date === "string" &&
         /^\d{4}-\d{2}-\d{2}$/.test(record.date) &&
-        categories[record.type].includes(record.category)
+        categories[record.type].includes(record.category) &&
+        (record.payment === undefined || typeof record.payment === "string") &&
+        (record.note === undefined || typeof record.note === "string")
       );
+      if (!validRecords) throw new Error("備份內含有不正確的紀錄，原資料未更動");
 
-      if (!valid) {
-        throw new Error("備份內有不正確的紀錄");
+      const includesBudgets = !Array.isArray(backup) &&
+        Object.prototype.hasOwnProperty.call(backup, "budgets");
+      if (includesBudgets && !isValidBackupBudgets(backup.budgets)) {
+        throw new Error("備份內的預算資料格式不正確，原資料未更動");
       }
 
-      if (!confirm(
-        "匯入備份會取代這台裝置目前的所有紀錄，確定繼續嗎？"
-      )) {
-        return;
-      }
-
-      const previousRecords = [...records];
-
-      records = imported.map((record) => ({
+      const importedRecords = imported.map((record) => ({
         id: record.id,
         type: record.type,
         amount: Math.round(Number(record.amount) * 100) / 100,
         date: record.date,
         category: record.category,
-        payment: paymentMethods.includes(record.payment)
-          ? record.payment
-          : "其他",
+        payment: paymentMethods.includes(record.payment) ? record.payment : "其他",
         note: typeof record.note === "string" ? record.note : "",
         createdAt: Number(record.createdAt) || 0
       }));
+      const importedBudgets = includesBudgets ? backup.budgets : budgets;
+      const budgetMessage = includesBudgets
+        ? "記帳紀錄與預算都會被這份備份取代。"
+        : "這是沒有預算資料的舊版備份，匯入後會保留目前裝置上的預算。";
+      const confirmed = window.confirm(
+        "即將匯入 " + importedRecords.length + " 筆記帳紀錄。\n" +
+        budgetMessage + "\n\n為避免資料遺失，建議先匯出目前資料。確定繼續嗎？"
+      );
+      if (!confirmed) return;
 
-      if (!saveRecords()) {
+      // 先保存原始儲存值；若任一項寫入失敗，就回復兩項原始值。
+      const previousRecordsRaw = localStorage.getItem(STORAGE_KEY);
+      const previousBudgetsRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
+      const previousRecords = records;
+      const previousBudgets = budgets;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(importedRecords));
+        localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(importedBudgets));
+      } catch (storageError) {
+        try {
+          if (previousRecordsRaw === null) localStorage.removeItem(STORAGE_KEY);
+          else localStorage.setItem(STORAGE_KEY, previousRecordsRaw);
+          if (previousBudgetsRaw === null) localStorage.removeItem(BUDGET_STORAGE_KEY);
+          else localStorage.setItem(BUDGET_STORAGE_KEY, previousBudgetsRaw);
+        } catch (rollbackError) {
+          console.error("還原原始儲存資料時發生錯誤：", rollbackError);
+        }
         records = previousRecords;
-        return;
+        budgets = previousBudgets;
+        throw new Error("裝置儲存失敗，已嘗試還原匯入前的資料。請確認儲存空間後再試。");
       }
 
+      records = importedRecords;
+      budgets = importedBudgets;
       render();
-      alert("備份匯入成功！");
+      alert(includesBudgets
+        ? "備份匯入成功！記帳紀錄與預算已還原。"
+        : "舊版備份匯入成功！記帳紀錄已還原，原有預算已保留。");
     } catch (error) {
-      alert(`匯入失敗：${error.message || "檔案無法讀取"}`);
+      alert("匯入失敗：" + (error.message || "檔案無法讀取"));
     } finally {
       const importInput = $("#importFile");
-      if (importInput) {
-        importInput.value = "";
-      }
+      if (importInput) importInput.value = "";
     }
   };
-
+  reader.onerror = () => {
+    alert("無法讀取這個備份檔，原資料未更動。");
+    const importInput = $("#importFile");
+    if (importInput) importInput.value = "";
+  };
   reader.readAsText(file);
 }
 
@@ -1368,19 +1405,19 @@ function initialize() {
     );
   });
 
-  // 備份功能保留原有事件綁定，不新增介面按鈕。
+  // 設定頁的備份／還原功能。
   $("#exportBtn")?.addEventListener("click", exportBackup);
-
-  $("#importBtn")?.addEventListener("click", () => {
-    $("#importFile")?.click();
-  });
-
+  $("#importBtn")?.addEventListener("click", () => $("#importFile")?.click());
   $("#importFile")?.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
-    if (file) {
-      importBackup(file);
-    }
+    if (file) importBackup(file);
   });
+
+  // 點擊版本號查看更新紀錄。
+  const changelogDialog = $("#changelogDialog");
+  $("#versionBtn")?.addEventListener("click", () => changelogDialog?.showModal());
+  $("#closeChangelog")?.addEventListener("click", () => changelogDialog?.close());
+  $("#closeChangelogFooter")?.addEventListener("click", () => changelogDialog?.close());
 
   // 初次渲染與側邊選單。
   render();
