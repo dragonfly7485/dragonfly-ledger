@@ -996,28 +996,74 @@ function saveForm(event) {
 
   closeForm();
   render();
+  showBudgetFeedback(record);
 }
+
+let pendingDeleteId = null;
+let budgetFeedbackTimer = null;
 
 function deleteRecord(id) {
   const record = records.find((item) => item.id === id);
   if (!record) return;
 
-  const confirmed = confirm(
-    `確定刪除這筆${record.type === "income" ? "收入" : "支出"}紀錄嗎？`
-  );
+  pendingDeleteId = id;
+  const typeLabel = record.type === "income" ? "收入" : "支出";
+  $("#deleteDialogTitle").textContent = `刪除${typeLabel}紀錄？`;
+  $("#deleteRecordSummary").textContent = `${record.category} · ${money(record.amount)} · ${record.date}${record.note ? ` · ${record.note}` : ""}`;
+  $("#deleteDialog").showModal();
+}
 
-  if (!confirmed) return;
+function closeDeleteDialog() {
+  $("#deleteDialog").close();
+  pendingDeleteId = null;
+}
 
+function confirmDeleteRecord() {
+  if (!pendingDeleteId) return;
+  const id = pendingDeleteId;
   const previousRecords = [...records];
-
   records = records.filter((item) => item.id !== id);
 
   if (!saveRecords()) {
     records = previousRecords;
+    closeDeleteDialog();
     return;
   }
 
+  closeDeleteDialog();
   render();
+}
+
+function showBudgetFeedback(record) {
+  if (!record || record.type !== "expense") return;
+
+  const month = record.date.slice(0, 7);
+  const monthBudget = budgets[month];
+  if (!monthBudget || typeof monthBudget !== "object") return;
+
+  const monthRecords = records.filter((item) => typeof item.date === "string" && item.date.startsWith(month));
+  const totalBudget = Number(monthBudget.total) || 0;
+  const totalSpent = sum(monthRecords, "expense");
+  const categoryBudget = Number(monthBudget.categories?.[record.category]) || 0;
+  const categorySpent = expenseByCategory(monthRecords)[record.category] || 0;
+  const messages = [];
+
+  if (totalBudget > 0) {
+    const remaining = totalBudget - totalSpent;
+    messages.push(remaining < 0 ? `本月總預算超支 ${money(-remaining)}` : `本月總預算剩餘 ${money(remaining)}`);
+  }
+  if (categoryBudget > 0) {
+    const remaining = categoryBudget - categorySpent;
+    messages.push(remaining < 0 ? `${record.category}預算超支 ${money(-remaining)}` : `${record.category}預算剩餘 ${money(remaining)}`);
+  }
+  if (!messages.length) return;
+
+  const feedback = $("#budgetFeedback");
+  if (!feedback) return;
+  feedback.textContent = `💰 ${messages.join("　·　")}`;
+  feedback.classList.add("show");
+  clearTimeout(budgetFeedbackTimer);
+  budgetFeedbackTimer = setTimeout(() => feedback.classList.remove("show"), 5000);
 }
 
 /* =========================
@@ -1146,6 +1192,9 @@ function initialize() {
   $("#closeDialog").addEventListener("click", closeForm);
   $("#cancelDialog").addEventListener("click", closeForm);
   $("#transactionForm").addEventListener("submit", saveForm);
+  $("#cancelDeleteDialog").addEventListener("click", closeDeleteDialog);
+  $("#closeDeleteDialog").addEventListener("click", closeDeleteDialog);
+  $("#confirmDeleteRecord").addEventListener("click", confirmDeleteRecord);
 
   // 收入／支出切換。
   document.querySelectorAll(".type-button").forEach((button) => {
