@@ -387,7 +387,7 @@
             <strong>應用程式</strong>
             <p>蜻蜓牌記帳本</p>
           </div>
-          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.0.1</button>
+          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.0.2</button>
         </div>
 
         <div class="settings-row">
@@ -416,6 +416,8 @@
           <button id="importBtn" class="cancel-button settings-action-button" type="button">匯入／還原備份</button>
           <input id="importFile" class="visually-hidden" type="file" accept=".json,application/json">
           <p class="settings-help">匯入會取代目前裝置的記帳紀錄；新版備份也會還原預算。匯入舊版備份時，現有預算會保留。</p>
+          <button id="resetAllBtn" class="reset-button settings-action-button" type="button">全部重置</button>
+          <p class="settings-help reset-warning">會刪除本機所有記帳紀錄與預算，且無法直接復原。請先匯出備份。</p>
         </div>
 
         <p class="settings-note">
@@ -441,7 +443,14 @@
       <button id="closeChangelog" class="close-button" type="button" aria-label="關閉更新紀錄">×</button>
     </div>
     <div class="changelog-entry">
-      <h3>v2.0.1 <span>目前版本</span></h3>
+      <h3>v2.0.2 <span>目前版本</span></h3>
+      <ul>
+        <li>新增全部重置，可清除本機記帳紀錄與預算，並加入二次確認。</li>
+        <li>新增金額計算機，支援加減乘除、小數、正負切換與刪除。</li>
+      </ul>
+    </div>
+    <div class="changelog-entry">
+      <h3>v2.0.1</h3>
       <ul>
         <li>設定頁新增記帳紀錄與預算的 JSON 匯出、匯入。</li>
         <li>匯入前檢查資料格式，儲存失敗時會嘗試還原原有資料。</li>
@@ -530,7 +539,33 @@
           step="0.01"
           placeholder="0"
           required
+          aria-label="計算機結果與記帳金額"
         >
+      </div>
+      <div id="calculator" class="calculator" aria-label="金額計算機">
+        <div id="calculatorStatus" class="calculator-status" aria-live="polite">輸入金額，或使用下方計算機</div>
+        <div class="calculator-grid">
+          <button type="button" data-calc="clear" class="calculator-function">AC</button>
+          <button type="button" data-calc="backspace" class="calculator-function" aria-label="刪除一位">⌫</button>
+          <button type="button" data-calc="operator" data-value="÷" class="calculator-operator">÷</button>
+          <button type="button" data-calc="operator" data-value="×" class="calculator-operator">×</button>
+          <button type="button" data-calc="digit" data-value="7">7</button>
+          <button type="button" data-calc="digit" data-value="8">8</button>
+          <button type="button" data-calc="digit" data-value="9">9</button>
+          <button type="button" data-calc="operator" data-value="−" class="calculator-operator">−</button>
+          <button type="button" data-calc="digit" data-value="4">4</button>
+          <button type="button" data-calc="digit" data-value="5">5</button>
+          <button type="button" data-calc="digit" data-value="6">6</button>
+          <button type="button" data-calc="operator" data-value="+" class="calculator-operator">+</button>
+          <button type="button" data-calc="digit" data-value="1">1</button>
+          <button type="button" data-calc="digit" data-value="2">2</button>
+          <button type="button" data-calc="digit" data-value="3">3</button>
+          <button type="button" data-calc="equals" class="calculator-equals">=</button>
+          <button type="button" data-calc="sign" class="calculator-function">+/−</button>
+          <button type="button" data-calc="digit" data-value="0">0</button>
+          <button type="button" data-calc="decimal">.</button>
+          <button type="button" data-calc="operator" data-value="+" class="calculator-operator">+</button>
+        </div>
       </div>
 
       <label class="field-label" for="category">分類</label>
