@@ -1193,7 +1193,6 @@ function initialize() {
   $("#cancelDialog").addEventListener("click", closeForm);
   $("#transactionForm").addEventListener("submit", saveForm);
   $("#cancelDeleteDialog").addEventListener("click", closeDeleteDialog);
-  $("#closeDeleteDialog").addEventListener("click", closeDeleteDialog);
   $("#confirmDeleteRecord").addEventListener("click", confirmDeleteRecord);
 
   // 收入／支出切換。
