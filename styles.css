@@ -714,7 +714,8 @@ section {
    分類支出圓餅圖
    ========================= */
 
-.expense-pie {
+.expense-pie,
+.payment-pie {
   position: relative;
   width: min(230px, 70vw);
   aspect-ratio: 1;
@@ -724,7 +725,8 @@ section {
   background: #e8ece9;
 }
 
-.expense-pie::after {
+.expense-pie::after,
+.payment-pie::after {
   position: absolute;
   inset: 25%;
   border: 1px solid rgba(38, 63, 50, 0.05);
@@ -930,6 +932,72 @@ section {
 /* =========================
    設定頁
    ========================= */
+
+.query-section {
+  display: grid;
+  gap: 14px;
+}
+
+.query-month-label {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.query-card {
+  display: grid;
+  gap: 14px;
+}
+
+.query-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.query-filter-field {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.query-filter-field label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.query-filter-field input,
+.query-filter-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+
+.query-filter-wide {
+  grid-column: 1 / -1;
+}
+
+.query-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.query-actions .cancel-button {
+  width: auto;
+  margin-top: 0;
+  padding: 10px 16px;
+}
+
+.query-results-heading {
+  margin-top: 4px;
+}
 
 .settings-section {
   display: grid;
@@ -1386,12 +1454,14 @@ section,
 
 :root[data-theme="dark"] .ring,
 :root[data-theme="dark"] .budget-progress-track,
-:root[data-theme="dark"] .expense-pie {
+:root[data-theme="dark"] .expense-pie,
+:root[data-theme="dark"] .payment-pie {
   background-color: var(--surface-soft);
 }
 
 :root[data-theme="dark"] .ring-center,
 :root[data-theme="dark"] .expense-pie::after,
+:root[data-theme="dark"] .payment-pie::after,
 :root[data-theme="dark"] .type-button.active {
   background: var(--card);
 }
