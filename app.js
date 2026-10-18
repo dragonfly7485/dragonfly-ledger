@@ -1017,6 +1017,8 @@ function openForm(record = null) {
 
   $("#formTitle").textContent = record ? "編輯紀錄" : "新增紀錄";
   $("#amount").value = record ? record.amount : "";
+  $("#calculator")?.classList.add("calculator-hidden");
+  $("#amount")?.setAttribute("aria-expanded", "false");
   resetCalculatorState();
   $("#transactionDate").value = record ? record.date : selectedDate();
   syncDateLabels();
@@ -1037,6 +1039,8 @@ function openForm(record = null) {
 
 function closeForm() {
   $("#transactionDialog").close();
+  $("#calculator")?.classList.add("calculator-hidden");
+  $("#amount")?.setAttribute("aria-expanded", "false");
   editingId = null;
   resetCalculatorState();
 }
@@ -1420,7 +1424,7 @@ function resetAllData() {
   confirmButton.disabled = true;
   try {
     if (!dialog.open) dialog.showModal();
-    input.focus({ preventScroll: true });
+    // 不在開窗時自動聚焦輸入欄，避免 iOS 鍵盤推動畫面造成視窗跳動。
   } catch (error) {
     console.error("無法開啟重置確認視窗：", error);
     const typed = window.prompt("此裝置無法開啟確認視窗。若要清除本機所有記帳紀錄與預算，請輸入 RESET。");
@@ -1497,11 +1501,8 @@ function initialize() {
   $("#transactionForm").addEventListener("submit", saveForm);
   const amountInput = $("#amount");
   const calculator = $("#calculator");
+  // 只在使用者明確點擊金額欄位時展開，避免對話框自動聚焦就顯示。
   amountInput?.addEventListener("click", () => {
-    calculator?.classList.remove("calculator-hidden");
-    amountInput.setAttribute("aria-expanded", "true");
-  });
-  amountInput?.addEventListener("focus", () => {
     calculator?.classList.remove("calculator-hidden");
     amountInput.setAttribute("aria-expanded", "true");
   });
