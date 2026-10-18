@@ -437,6 +437,18 @@
   <!-- 新增與編輯紀錄視窗 -->
   <div id="budgetFeedback" class="budget-feedback" role="status" aria-live="polite"></div>
 
+  <dialog id="resetDialog" class="reset-dialog" aria-labelledby="resetDialogTitle">
+    <div class="reset-dialog-icon" aria-hidden="true">!</div>
+    <h2 id="resetDialogTitle">重置這台裝置的資料？</h2>
+    <p class="reset-dialog-copy">這會清除所有記帳紀錄與各月份預算，無法直接復原。外觀主題不會改變。</p>
+    <label class="reset-confirm-label" for="resetConfirmInput">輸入 <strong>RESET</strong> 以確認</label>
+    <input id="resetConfirmInput" class="reset-confirm-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="輸入 RESET">
+    <div class="reset-dialog-actions">
+      <button id="cancelResetBtn" class="cancel-button" type="button">取消</button>
+      <button id="confirmResetBtn" class="reset-button" type="button" disabled>永久重置</button>
+    </div>
+  </dialog>
+
   <dialog id="changelogDialog" class="changelog-dialog" aria-labelledby="changelogTitle">
     <div class="dialog-heading">
       <h2 id="changelogTitle">版本更新紀錄</h2>
@@ -539,16 +551,17 @@
           step="0.01"
           placeholder="0"
           required
-          aria-label="計算機結果與記帳金額"
+          aria-label="記帳金額"
         >
       </div>
       <div id="calculator" class="calculator" aria-label="金額計算機">
-        <div id="calculatorStatus" class="calculator-status" aria-live="polite">輸入金額，或使用下方計算機</div>
+        <div class="calculator-display">
+          <span class="calculator-display-label">計算金額</span>
+          <strong id="calculatorStatus" class="calculator-status" aria-live="polite">輸入金額或開始計算</strong>
+        </div>
         <div class="calculator-grid">
           <button type="button" data-calc="clear" class="calculator-function">AC</button>
           <button type="button" data-calc="backspace" class="calculator-function" aria-label="刪除一位">⌫</button>
-          <button type="button" data-calc="operator" data-value="÷" class="calculator-operator">÷</button>
-          <button type="button" data-calc="operator" data-value="×" class="calculator-operator">×</button>
           <button type="button" data-calc="digit" data-value="7">7</button>
           <button type="button" data-calc="digit" data-value="8">8</button>
           <button type="button" data-calc="digit" data-value="9">9</button>
@@ -560,10 +573,9 @@
           <button type="button" data-calc="digit" data-value="1">1</button>
           <button type="button" data-calc="digit" data-value="2">2</button>
           <button type="button" data-calc="digit" data-value="3">3</button>
-          <button type="button" data-calc="equals" class="calculator-equals">=</button>
-          <button type="button" data-calc="sign" class="calculator-function">+/−</button>
-          <button type="button" data-calc="digit" data-value="0">0</button>
           <button type="button" data-calc="decimal">.</button>
+          <button type="button" data-calc="digit" data-value="0" class="calculator-zero">0</button>
+          <button type="button" data-calc="equals" class="calculator-equals">=</button>
         </div>
       </div>
 
