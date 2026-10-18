@@ -2066,3 +2066,46 @@ dialog select {
   -webkit-appearance: none;
   appearance: none;
 }
+
+
+/* Calculator behaves like the phone keyboard at the bottom of the screen. */
+.calculator {
+  position: fixed;
+  z-index: 1001;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10px max(14px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+  background: var(--background);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, .14);
+  gap: 8px;
+}
+.calculator-display,
+.calculator-display-label,
+.calculator-status {
+  display: none !important;
+}
+.calculator-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+.calculator-grid button {
+  min-height: clamp(42px, 7vh, 54px);
+  width: 100%;
+  padding: 6px 4px;
+  font-size: 21px;
+}
+#transactionDialog:has(#calculator:not(.calculator-hidden)) {
+  padding-bottom: 300px;
+}
+@media (max-height: 700px) {
+  .calculator-grid { gap: 5px; }
+  .calculator-grid button { min-height: 40px; }
+  #transactionDialog:has(#calculator:not(.calculator-hidden)) { padding-bottom: 260px; }
+}
