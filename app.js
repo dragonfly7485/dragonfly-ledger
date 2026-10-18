@@ -1017,9 +1017,6 @@ function openForm(record = null) {
 
   $("#formTitle").textContent = record ? "編輯紀錄" : "新增紀錄";
   $("#amount").value = record ? record.amount : "";
-  $("#calculator")?.classList.add("calculator-hidden");
-  $("#amount")?.setAttribute("aria-expanded", "false");
-  resetCalculatorState();
   $("#transactionDate").value = record ? record.date : selectedDate();
   syncDateLabels();
   $("#note").value = record ? record.note || "" : "";
@@ -1039,95 +1036,9 @@ function openForm(record = null) {
 
 function closeForm() {
   $("#transactionDialog").close();
-  $("#calculator")?.classList.add("calculator-hidden");
-  $("#amount")?.setAttribute("aria-expanded", "false");
   editingId = null;
-  resetCalculatorState();
 }
 
-/* 金額計算機：結果直接同步至記帳金額欄位。 */
-let calculatorStoredValue = null;
-let calculatorOperator = null;
-let calculatorResetDisplay = false;
-let calculatorFirstValue = null;
-
-function resetCalculatorState() {
-  calculatorStoredValue = null;
-  calculatorOperator = null;
-  calculatorResetDisplay = false;
-  calculatorFirstValue = null;
-}
-
-function calculatorNumber() {
-  const value = Number($("#amount").value);
-  return Number.isFinite(value) ? value : 0;
-}
-
-function formatCalculatorNumber(value) {
-  if (!Number.isFinite(value)) return "";
-  return String(Math.round((value + Number.EPSILON) * 100000000) / 100000000);
-}
-
-function performCalculation(left, operator, right) {
-  return operator === "+" ? left + right : left - right;
-}
-
-function handleCalculatorAction(button) {
-  const action = button.dataset.calc;
-  const amount = $("#amount");
-  const value = button.dataset.value;
-
-  if (action === "clear") {
-    amount.value = "";
-    resetCalculatorState();
-    return;
-  }
-
-  if (action === "digit") {
-    amount.value = calculatorResetDisplay || amount.value === "0" || /[+−]$/.test(amount.value)
-      ? value : amount.value + value;
-    calculatorResetDisplay = false;
-    return;
-  }
-
-  if (action === "decimal") {
-    if (calculatorResetDisplay || !amount.value || /[+−]$/.test(amount.value)) amount.value = "0";
-    if (!amount.value.includes(".")) amount.value += ".";
-    calculatorResetDisplay = false;
-    return;
-  }
-
-  if (action === "backspace") {
-    amount.value = calculatorResetDisplay ? "" : amount.value.slice(0, -1);
-    calculatorResetDisplay = false;
-    if (!amount.value || /[+−]$/.test(amount.value)) resetCalculatorState();
-    return;
-  }
-
-  if (action === "operator") {
-    const current = calculatorResetDisplay && calculatorOperator
-      ? calculatorStoredValue : calculatorNumber();
-    if (calculatorOperator && !calculatorResetDisplay) {
-      calculatorStoredValue = performCalculation(calculatorStoredValue, calculatorOperator, current);
-    } else if (!calculatorOperator) {
-      calculatorStoredValue = current;
-    }
-    calculatorFirstValue = calculatorStoredValue;
-    calculatorOperator = value;
-    amount.value = `${formatCalculatorNumber(calculatorStoredValue)} ${value}`;
-    calculatorResetDisplay = true;
-    return;
-  }
-
-  if (action === "equals" && calculatorOperator) {
-    const right = calculatorResetDisplay ? calculatorStoredValue : calculatorNumber();
-    amount.value = formatCalculatorNumber(performCalculation(calculatorStoredValue, calculatorOperator, right));
-    calculatorStoredValue = null;
-    calculatorOperator = null;
-    calculatorFirstValue = null;
-    calculatorResetDisplay = true;
-  }
-}
 
 function saveForm(event) {
   event.preventDefault();
@@ -1485,18 +1396,6 @@ function initialize() {
   $("#closeDialog").addEventListener("click", closeForm);
   $("#cancelDialog").addEventListener("click", closeForm);
   $("#transactionForm").addEventListener("submit", saveForm);
-  const amountInput = $("#amount");
-  const calculator = $("#calculator");
-  // 只在使用者明確點擊金額欄位時展開，避免對話框自動聚焦就顯示。
-  amountInput?.addEventListener("click", () => {
-    calculator?.classList.remove("calculator-hidden");
-    amountInput.setAttribute("aria-expanded", "true");
-  });
-  $("#calculator")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-calc]");
-    if (button) handleCalculatorAction(button);
-  });
-  // 金額欄位是唯讀顯示，不會叫出手機原生鍵盤。
 
   $("#cancelDeleteDialog").addEventListener("click", closeDeleteDialog);
   $("#confirmDeleteRecord").addEventListener("click", confirmDeleteRecord);
