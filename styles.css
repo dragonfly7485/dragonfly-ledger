@@ -2021,3 +2021,17 @@ dialog select {
   background: #482c2b;
   color: #ffaaa4;
 }
+
+
+/* 計算機預設收起，點擊金額欄位才展開 */
+.calculator-hidden { display: none !important; }
+#amount {
+  cursor: pointer;
+  caret-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+#amount:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
