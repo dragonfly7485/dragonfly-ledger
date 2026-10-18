@@ -96,6 +96,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-left: 54px;
   margin-bottom: 28px;
 }
 
@@ -177,6 +178,10 @@ section {
    ========================= */
 
 .menu-button {
+  position: fixed;
+  z-index: 99;
+  top: calc(24px + env(safe-area-inset-top));
+  left: max(calc(16px + env(safe-area-inset-left)), calc((100vw - 560px) / 2));
   display: flex;
   width: 42px;
   height: 42px;
