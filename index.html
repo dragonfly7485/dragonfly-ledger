@@ -68,6 +68,15 @@
       <button
         class="menu-item"
         type="button"
+        data-page-target="analysis"
+      >
+        <span class="menu-item-icon" aria-hidden="true">✦</span>
+        <span>分析與成就</span>
+      </button>
+
+      <button
+        class="menu-item"
+        type="button"
         data-page-target="records"
       >
         <span class="menu-item-icon" aria-hidden="true">⌕</span>
@@ -172,8 +181,93 @@
         </div>
       </section>
 
+      <!-- 記帳明細 -->
+      <section class="records-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">TRANSACTIONS</p>
+            <h2>記帳明細</h2>
+          </div>
+
+          <input id="datePicker" type="hidden" value="">
+          <button id="datePickerButton" class="date-trigger" type="button" aria-label="選擇日期">選擇日期</button>
+        </div>
+
+        <div class="daily-summary">
+          <div>
+            <span>當日收入</span>
+            <strong id="dayIncome">$0</strong>
+          </div>
+
+          <div>
+            <span>當日支出</span>
+            <strong id="dayExpense">$0</strong>
+          </div>
+
+          <div>
+            <span>當日結餘</span>
+            <strong id="dayBalance">$0</strong>
+          </div>
+        </div>
+
+        <div class="list-heading">
+          <strong id="listDate">交易紀錄</strong>
+          <span id="recordCount">0 筆紀錄</span>
+        </div>
+
+        <div id="transactionList" class="transaction-list"></div>
+      </section>
+
+    </section>
+
+    <!-- ========================
+         消費分析與成就
+         ======================== -->
+    <section id="analysisSection" class="analytics-page" hidden aria-labelledby="analysisTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">INSIGHTS & QUESTS</p>
+          <h2 id="analysisTitle">📊 消費分析與成就</h2>
+        </div>
+      </div>
+
+      <div class="analytics-hero budget-card">
+        <div class="analytics-hero-top">
+          <span class="analytics-kicker">本月總支出</span>
+          <span class="analytics-month" id="analyticsMonthLabel">--</span>
+        </div>
+        <strong class="analytics-total" id="analyticsMonthSpend">NT$ 0</strong>
+        <p id="analyticsMonthChange" class="analytics-change">新增紀錄後，這裡會比較上個月。</p>
+        <div class="analytics-stat-grid">
+          <div><span>記帳天數</span><strong id="analyticsRecordDays">0 天</strong></div>
+          <div><span>交易筆數</span><strong id="analyticsRecordCount">0 筆</strong></div>
+          <div><span>最高支出分類</span><strong id="analyticsTopCategory">尚無資料</strong></div>
+        </div>
+      </div>
+
+      <div class="budget-card analytics-card">
+        <div class="analytics-card-heading">
+          <div><h3>🗓️ 近六個月支出趨勢</h3><p class="budget-subtitle">以首頁選擇的月份為終點</p></div>
+        </div>
+        <div id="monthlyTrend" class="monthly-trend" aria-label="近六個月支出長條圖"></div>
+      </div>
+
+      <div class="budget-card analytics-card">
+        <h3>🔎 本月花費觀察</h3>
+        <div id="categoryInsight" class="category-insight"></div>
+      </div>
+
+      <div class="budget-card analytics-card">
+        <div class="analytics-card-heading">
+          <div><h3>🪷 蜻蜓成長任務</h3><p class="budget-subtitle">成就由現有記帳紀錄計算，不另外寫入資料</p></div>
+          <span class="quest-chip">XP</span>
+        </div>
+        <div id="dragonflyLevel" class="dragonfly-level"></div>
+        <div id="achievementGrid" class="achievement-grid"></div>
+      </div>
+
       <!-- 支出分析先留在首頁 -->
-      <section id="analysisSection" class="analysis-section">
+      <section id="categoryAnalysisSection" class="analysis-section">
         <div class="section-heading">
           <div>
             <p class="eyebrow">SPENDING ANALYSIS</p>
@@ -210,43 +304,6 @@
           <div id="paymentPie" class="expense-pie payment-pie" role="img" aria-label="本月付款方式支出圓餅圖"></div>
           <div id="paymentLegend" class="expense-legend"></div>
         </div>
-      </section>
-
-      <!-- 記帳明細 -->
-      <section class="records-section">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">TRANSACTIONS</p>
-            <h2>記帳明細</h2>
-          </div>
-
-          <input id="datePicker" type="hidden" value="">
-          <button id="datePickerButton" class="date-trigger" type="button" aria-label="選擇日期">選擇日期</button>
-        </div>
-
-        <div class="daily-summary">
-          <div>
-            <span>當日收入</span>
-            <strong id="dayIncome">$0</strong>
-          </div>
-
-          <div>
-            <span>當日支出</span>
-            <strong id="dayExpense">$0</strong>
-          </div>
-
-          <div>
-            <span>當日結餘</span>
-            <strong id="dayBalance">$0</strong>
-          </div>
-        </div>
-
-        <div class="list-heading">
-          <strong id="listDate">交易紀錄</strong>
-          <span id="recordCount">0 筆紀錄</span>
-        </div>
-
-        <div id="transactionList" class="transaction-list"></div>
       </section>
 
     </section>
