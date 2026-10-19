@@ -1619,7 +1619,7 @@ function initializeCalculator() {
     if (!overlay.open) overlay.showModal();
     document.body.classList.add("calculator-open");
     renderDisplay();
-    $("#calculatorClose")?.focus({ preventScroll: true });
+    $("#calculatorDisplayFocus")?.focus({ preventScroll: true });
   }
   function hideCalculator() {
     if (overlay.open) overlay.close();
@@ -1709,7 +1709,7 @@ function initializeCalculator() {
   document.addEventListener("keydown", (event) => {
     if (!overlay.open) return;
     if (event.key === "Escape") { event.preventDefault(); hideCalculator(); }
-    else if (/^\\d$/.test(event.key)) enterDigit(event.key);
+    else if (/^\d$/.test(event.key)) enterDigit(event.key);
     else if (["+", "-", "*", "/"].includes(event.key)) chooseOperator(event.key);
     else if (event.key === "Enter" || event.key === "=") { event.preventDefault(); equals(); }
     else if (event.key === ".") handleAction("decimal");
