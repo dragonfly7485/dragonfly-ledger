@@ -643,7 +643,31 @@
   </dialog>
 
   <!-- 主程式 -->
-  <script src="./app.js?v=20261019-2"></script>
+  <script>
+    (function () {
+      function showRuntimeError(message) {
+        let panel = document.getElementById("runtimeErrorPanel");
+        if (!panel) {
+          panel = document.createElement("pre");
+          panel.id = "runtimeErrorPanel";
+          panel.style.cssText = "position:fixed;z-index:999999;left:8px;right:8px;bottom:8px;max-height:45vh;overflow:auto;white-space:pre-wrap;background:#fff0f0;color:#7a1111;border:2px solid #c33;border-radius:10px;padding:12px;font:14px/1.5 monospace;box-shadow:0 4px 24px #0004";
+          document.body.appendChild(panel);
+        }
+        panel.textContent = "記帳本程式發生錯誤，請截圖回報：\\n" + message;
+      }
+      window.addEventListener("error", function (event) {
+        showRuntimeError((event.message || "未知 JavaScript 錯誤") +
+          (event.filename ? "\\n檔案：" + event.filename : "") +
+          (event.lineno ? "\\n行數：" + event.lineno : ""));
+      });
+      window.addEventListener("unhandledrejection", function (event) {
+        const reason = event.reason;
+        showRuntimeError("未處理的非同步錯誤：" +
+          (reason && reason.stack ? reason.stack : String(reason)));
+      });
+    })();
+  </script>
+  <script src="./app.js?v=20261019-3" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
