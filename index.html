@@ -650,7 +650,7 @@
   </dialog>
 
   <!-- 臨時計算機：獨立介面，不會自動修改記帳資料 -->
-  <div id="calculatorOverlay" class="calculator-overlay" hidden>
+  <dialog id="calculatorOverlay" class="calculator-overlay" aria-labelledby="calculatorTitle">
     <section class="calculator-panel" role="dialog" aria-modal="true" aria-labelledby="calculatorTitle">
       <div class="calculator-header">
         <div><p class="eyebrow">QUICK CALC</p><h2 id="calculatorTitle">臨時計算機</h2></div>
@@ -687,7 +687,7 @@
         <button id="calculatorUseResult" class="calculator-use-result" type="button" hidden>帶入金額</button>
       </div>
     </section>
-  </div>
+  </dialog>
 
   <!-- 主程式 -->
   <script>
@@ -714,7 +714,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261019-5" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261019-6" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
