@@ -216,6 +216,17 @@ section {
   background: var(--green-dark);
 }
 
+.calculator-menu-button {
+  top: calc(76px + env(safe-area-inset-top));
+  color: var(--green-dark);
+}
+
+.calculator-menu-button svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
 /* =========================
    左側選單遮罩
    ========================= */
@@ -1090,9 +1101,6 @@ section {
   background: var(--green);
 }
 
-.calculator-home-button {
-  bottom: calc(18px + env(safe-area-inset-bottom));
-}
 
 .carrier-button {
   bottom: calc(142px + env(safe-area-inset-bottom));
