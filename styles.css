@@ -1067,7 +1067,7 @@ section {
   position: fixed;
   z-index: 10;
   right: 16px;
-  bottom: calc(18px + env(safe-area-inset-bottom));
+  bottom: calc(80px + env(safe-area-inset-bottom));
   left: 16px;
   width: min(528px, calc(100% - 32px));
   min-height: 54px;
@@ -1090,8 +1090,12 @@ section {
   background: var(--green);
 }
 
+.calculator-home-button {
+  bottom: calc(18px + env(safe-area-inset-bottom));
+}
+
 .carrier-button {
-  bottom: calc(80px + env(safe-area-inset-bottom));
+  bottom: calc(142px + env(safe-area-inset-bottom));
 }
 
 .carrier-settings .carrier-input-label {
