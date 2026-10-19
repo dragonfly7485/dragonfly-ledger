@@ -219,7 +219,7 @@ section {
 .calculator-menu-button {
   top: calc(76px + env(safe-area-inset-top));
   color: #000;
-  z-index: 98;
+  z-index: 102;
 }
 
 .calculator-menu-button svg {
@@ -1220,7 +1220,7 @@ body.menu-open .calculator-menu-button {
 
 @media (max-width: 390px) {
   .carrier-button {
-    bottom: calc(80px + env(safe-area-inset-bottom));
+    bottom: calc(142px + env(safe-area-inset-bottom));
   }
   .carrier-barcode-panel {
     padding: 14px 6px;
