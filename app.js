@@ -3,6 +3,7 @@ const $ = (selector) => document.querySelector(selector);
 const STORAGE_KEY = "dragonfly-ledger-v1";
 const BUDGET_STORAGE_KEY = "dragonfly-ledger-budgets-v1";
 const THEME_STORAGE_KEY = "dragonfly-ledger-theme-v1";
+const CARRIER_STORAGE_KEY = "dragonfly-ledger-carrier-v1";
 
 const categories = {
   expense: ["飲食", "交通", "購物", "娛樂", "生活", "學習", "醫療", "其他"],
@@ -38,6 +39,7 @@ const chartColors = [
 
 let records = loadRecords();
 let budgets = loadBudgets();
+let carrierSettings = loadCarrierSettings();
 let currentType = "expense";
 let editingId = null;
 
@@ -91,6 +93,175 @@ function saveBudgets() {
     console.error("儲存預算失敗：", error);
     alert("預算儲存失敗，請確認裝置的可用儲存空間。");
     return false;
+  }
+}
+
+/* =========================
+   電子發票手機條碼（僅儲存在本機）
+   ========================= */
+
+const CARRIER_PATTERN = /^\/[A-Z0-9.+-]{7}$/;
+
+function normalizeCarrierBarcode(value) {
+  return typeof value === "string" ? value.trim().toUpperCase() : "";
+}
+
+function isValidCarrierBarcode(value) {
+  return CARRIER_PATTERN.test(normalizeCarrierBarcode(value));
+}
+
+function loadCarrierSettings() {
+  const defaults = { barcode: "", enabled: true };
+  try {
+    const saved = localStorage.getItem(CARRIER_STORAGE_KEY);
+    if (!saved) return defaults;
+    const parsed = JSON.parse(saved);
+    const barcode = normalizeCarrierBarcode(parsed?.barcode);
+    return {
+      barcode: isValidCarrierBarcode(barcode) ? barcode : "",
+      enabled: parsed?.enabled !== false
+    };
+  } catch (error) {
+    console.error("讀取載具設定失敗：", error);
+    return defaults;
+  }
+}
+
+function persistCarrierSettings() {
+  try {
+    localStorage.setItem(CARRIER_STORAGE_KEY, JSON.stringify(carrierSettings));
+    updateCarrierButtonVisibility();
+    return true;
+  } catch (error) {
+    console.error("儲存載具設定失敗：", error);
+    return false;
+  }
+}
+
+function updateCarrierButtonVisibility() {
+  const button = $("#carrierBtn");
+  if (!button) return;
+  button.hidden = !carrierSettings.barcode ||
+    !carrierSettings.enabled ||
+    document.body.dataset.page !== "home";
+}
+
+function renderCarrierSettings() {
+  const input = $("#carrierBarcodeInput");
+  const toggle = $("#carrierEnabledToggle");
+  if (input && document.activeElement !== input) {
+    input.value = carrierSettings.barcode;
+  }
+  if (toggle) toggle.checked = carrierSettings.enabled;
+  updateCarrierButtonVisibility();
+}
+
+function saveCarrierBarcode() {
+  const input = $("#carrierBarcodeInput");
+  const feedback = $("#carrierSettingsFeedback");
+  const barcode = normalizeCarrierBarcode(input?.value || "");
+
+  if (barcode && !isValidCarrierBarcode(barcode)) {
+    if (feedback) {
+      feedback.textContent = "格式不正確。請輸入「/」開頭、共 8 個字元的手機條碼，例如 /AB12CD3。";
+      feedback.classList.add("carrier-feedback-error");
+    }
+    input?.focus();
+    return;
+  }
+
+  const previousBarcode = carrierSettings.barcode;
+  carrierSettings.barcode = barcode;
+  if (!persistCarrierSettings()) {
+    carrierSettings.barcode = previousBarcode;
+    if (feedback) {
+      feedback.textContent = "載具設定儲存失敗，請確認瀏覽器儲存空間後再試。";
+      feedback.classList.add("carrier-feedback-error");
+    }
+    return;
+  }
+
+  if (input) input.value = barcode;
+  if (feedback) {
+    feedback.textContent = barcode ? "載具條碼已儲存在這台裝置。" : "已清除載具條碼，首頁的顯示載具按鈕已隱藏。";
+    feedback.classList.remove("carrier-feedback-error");
+  }
+}
+
+function renderCode39Barcode(value) {
+  const container = $("#carrierBarcodeSvg");
+  const text = $("#carrierBarcodeText");
+  if (!container || !text || !isValidCarrierBarcode(value)) return;
+
+  const patterns = {
+    "0": "nnnwwnwnn", "1": "wnnwnnnnw", "2": "nnwwnnnnw",
+    "3": "wnwwnnnnn", "4": "nnnwwnnnw", "5": "wnnwwnnnn",
+    "6": "nnwwwnnnn", "7": "nnnwnnwnw", "8": "wnnwnnwnn",
+    "9": "nnwwnnwnn", "A": "wnnnnwnnw", "B": "nnwnnwnnw",
+    "C": "wnwnnwnnn", "D": "nnnnwwnnw", "E": "wnnnwwnnn",
+    "F": "nnwnwwnnn", "G": "nnnnnwwnw", "H": "wnnnnwwnn",
+    "I": "nnwnnwwnn", "J": "nnnnwwwnn", "K": "wnnnnnnww",
+    "L": "nnwnnnnww", "M": "wnwnnnnwn", "N": "nnnnwnnww",
+    "O": "wnnnwnnwn", "P": "nnwnwnnwn", "Q": "nnnnnnwww",
+    "R": "wnnnnnwwn", "S": "nnwnnnwwn", "T": "nnnnwnwwn",
+    "U": "wwnnnnnnw", "V": "nwwnnnnnw", "W": "wwwnnnnnn",
+    "X": "nwnnwnnnw", "Y": "wwnnwnnnn", "Z": "nwwnwnnnn",
+    "-": "nwnnnnwnw", ".": "wwnnnnwnn", "$": "nwnwnwnnn",
+    "/": "nwnwnnnwn", "+": "nwnnnwnwn", "%": "nnnwnwnwn",
+    "*": "nwnnwnwnn"
+  };
+  const encoded = `*${normalizeCarrierBarcode(value)}*`;
+  const module = 2;
+  const quietZone = 10;
+  const barHeight = 82;
+  let x = quietZone * module;
+  const rects = [];
+
+  [...encoded].forEach((character, characterIndex) => {
+    const pattern = patterns[character];
+    if (!pattern) return;
+    [...pattern].forEach((width, index) => {
+      const barWidth = (width === "w" ? 3 : 1) * module;
+      if (index % 2 === 0) {
+        rects.push(`<rect x="${x}" y="0" width="${barWidth}" height="${barHeight}" />`);
+      }
+      x += barWidth;
+    });
+    if (characterIndex < encoded.length - 1) x += module;
+  });
+
+  const width = x + quietZone * module;
+  container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${barHeight}" role="img" aria-label="手機條碼" preserveAspectRatio="xMidYMid meet"><rect width="${width}" height="${barHeight}" fill="#fff"/><g fill="#111">${rects.join("")}</g></svg>`;
+  text.textContent = normalizeCarrierBarcode(value);
+}
+
+function openCarrierDisplay() {
+  if (!carrierSettings.barcode || !carrierSettings.enabled) return;
+  renderCode39Barcode(carrierSettings.barcode);
+  const dialog = $("#carrierDialog");
+  if (dialog && !dialog.open) dialog.showModal();
+}
+
+function setCarrierEnabled(enabled) {
+  const previous = carrierSettings.enabled;
+  carrierSettings.enabled = Boolean(enabled);
+  if (!persistCarrierSettings()) {
+    carrierSettings.enabled = previous;
+    const toggle = $("#carrierEnabledToggle");
+    if (toggle) toggle.checked = previous;
+    const feedback = $("#carrierSettingsFeedback");
+    if (feedback) {
+      feedback.textContent = "無法儲存開關設定，請確認瀏覽器儲存空間後再試。";
+      feedback.classList.add("carrier-feedback-error");
+    }
+    return;
+  }
+  const feedback = $("#carrierSettingsFeedback");
+  if (feedback) {
+    feedback.textContent = carrierSettings.enabled
+      ? "已開啟首頁載具按鈕（需先設定有效條碼）。"
+      : "已關閉首頁載具按鈕。";
+    feedback.classList.remove("carrier-feedback-error");
   }
 }
 
@@ -414,10 +585,11 @@ function initializeMenu() {
       }
     });
 
-    // 新增記帳按鈕只在首頁顯示。
+    // 新增記帳與載具快捷按鈕只在首頁顯示。
     if (addButton) {
       addButton.hidden = pageName !== "home";
     }
+    updateCarrierButtonVisibility();
 
     closeMenu();
 
@@ -1390,6 +1562,16 @@ function initialize() {
   ).join("");
 
   updateCategoryOptions();
+
+  // 載具設定與展示視窗。
+  renderCarrierSettings();
+  $("#saveCarrierBtn")?.addEventListener("click", saveCarrierBarcode);
+  $("#carrierEnabledToggle")?.addEventListener("change", (event) => {
+    setCarrierEnabled(event.target.checked);
+  });
+  $("#carrierBtn")?.addEventListener("click", openCarrierDisplay);
+  $("#closeCarrierDialog")?.addEventListener("click", () => $("#carrierDialog")?.close());
+  $("#closeCarrierDone")?.addEventListener("click", () => $("#carrierDialog")?.close());
 
   // 新增與編輯視窗。
   $("#addBtn").addEventListener("click", () => openForm());
