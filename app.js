@@ -1613,17 +1613,23 @@ function initializeCalculator() {
   function resetCalculator() {
     currentValue = "0"; storedValue = null; pendingOperator = null;
     waitingForOperand = false; lastOperator = null; lastOperand = null; hasError = false;
-    expression.textContent = "可進行臨時計算"; renderDisplay();
+    expression.textContent = ""; renderDisplay();
   }
   function showCalculator() {
-    if (!overlay.open) overlay.showModal();
+    const activeDialog = document.querySelector("dialog[open]");
+    // 新增記帳視窗開啟時，把計算機放進該視窗的 DOM，
+    // 避免 iOS 上兩個原生 dialog 的 top-layer 行為互相卡住。
+    if (activeDialog && !activeDialog.contains(overlay)) activeDialog.appendChild(overlay);
+    else if (!activeDialog && overlay.parentElement !== document.body) document.body.appendChild(overlay);
+    overlay.hidden = false;
     document.body.classList.add("calculator-open");
     renderDisplay();
     $("#calculatorDisplayFocus")?.focus({ preventScroll: true });
   }
   function hideCalculator() {
-    if (overlay.open) overlay.close();
+    overlay.hidden = true;
     document.body.classList.remove("calculator-open");
+    if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
     if (transactionDialog?.open) amountInput?.focus({ preventScroll: true });
     else $("#calculatorFab")?.focus({ preventScroll: true });
   }
@@ -1707,7 +1713,7 @@ function initializeCalculator() {
     amountInput.dispatchEvent(new Event("input", { bubbles: true }));
   });
   document.addEventListener("keydown", (event) => {
-    if (!overlay.open) return;
+    if (overlay.hidden) return;
     if (event.key === "Escape") { event.preventDefault(); hideCalculator(); }
     else if (/^\d$/.test(event.key)) enterDigit(event.key);
     else if (["+", "-", "*", "/"].includes(event.key)) chooseOperator(event.key);
@@ -1715,6 +1721,9 @@ function initializeCalculator() {
     else if (event.key === ".") handleAction("decimal");
     else if (event.key === "Backspace") handleAction("backspace");
   });
+  // 初始狀態一定保持關閉，只有使用者點按鈕才會顯示。
+  overlay.hidden = true;
+  $("#calculatorClose")?.addEventListener("click", hideCalculator);
   renderDisplay();
 }
 
