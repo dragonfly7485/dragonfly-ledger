@@ -1583,6 +1583,144 @@ function executeResetAllData(useFallback = false) {
   alert("已重置所有記帳紀錄與預算。外觀主題等設定不受影響。");
 }
 
+
+/* =========================
+   臨時計算機
+   ========================= */
+function initializeCalculator() {
+  const overlay = $("#calculatorOverlay");
+  const display = $("#calculatorResult");
+  const expression = $("#calculatorExpression");
+  const useResultButton = $("#calculatorUseResult");
+  const transactionDialog = $("#transactionDialog");
+  const amountInput = $("#amount");
+  if (!overlay || !display || !expression) return;
+  let currentValue = "0", storedValue = null, pendingOperator = null;
+  let waitingForOperand = false, lastOperator = null, lastOperand = null, hasError = false;
+  const operatorLabels = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+  const formatValue = (value) => {
+    if (!Number.isFinite(value)) return "錯誤";
+    const rounded = Math.round((value + Number.EPSILON) * 1e10) / 1e10;
+    return String(Object.is(rounded, -0) ? 0 : rounded);
+  };
+  const numericValue = () => Number(currentValue);
+  function renderDisplay() {
+    display.textContent = currentValue;
+    display.classList.toggle("calculator-result-error", hasError);
+    useResultButton.hidden = !transactionDialog?.open || hasError || !Number.isFinite(numericValue());
+    if (hasError) expression.textContent = "無法完成這項運算";
+  }
+  function resetCalculator() {
+    currentValue = "0"; storedValue = null; pendingOperator = null;
+    waitingForOperand = false; lastOperator = null; lastOperand = null; hasError = false;
+    expression.textContent = "可進行臨時計算"; renderDisplay();
+  }
+  function showCalculator() {
+    const activeDialog = document.querySelector("dialog[open]");
+    if (activeDialog && activeDialog !== overlay.parentElement) activeDialog.appendChild(overlay);
+    else if (!activeDialog && overlay.parentElement !== document.body) document.body.appendChild(overlay);
+    overlay.hidden = false;
+    document.body.classList.add("calculator-open");
+    renderDisplay();
+    $("#calculatorClose")?.focus({ preventScroll: true });
+  }
+  function hideCalculator() {
+    overlay.hidden = true;
+    document.body.classList.remove("calculator-open");
+    if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
+    $("#calculatorFab")?.focus({ preventScroll: true });
+  }
+  function calculate(left, operator, right) {
+    if (operator === "+") return left + right;
+    if (operator === "-") return left - right;
+    if (operator === "*") return left * right;
+    if (operator === "/") return right === 0 ? NaN : left / right;
+    return right;
+  }
+  function enterDigit(digit) {
+    if (hasError) resetCalculator();
+    hasError = false;
+    if (waitingForOperand) { currentValue = digit; waitingForOperand = false; }
+    else if (currentValue.replace("-", "").replace(".", "").length < 14) currentValue = currentValue === "0" ? digit : currentValue + digit;
+    renderDisplay();
+  }
+  function chooseOperator(operator) {
+    if (hasError) return;
+    const inputValue = numericValue();
+    if (pendingOperator && !waitingForOperand) {
+      const result = calculate(storedValue, pendingOperator, inputValue);
+      if (!Number.isFinite(result)) {
+        currentValue = "錯誤"; hasError = true; storedValue = null; pendingOperator = null; renderDisplay(); return;
+      }
+      currentValue = formatValue(result); storedValue = result;
+    } else storedValue = inputValue;
+    pendingOperator = operator; waitingForOperand = true; lastOperator = null; lastOperand = null;
+    expression.textContent = formatValue(storedValue) + " " + operatorLabels[operator]; renderDisplay();
+  }
+  function equals() {
+    if (hasError) return;
+    if (pendingOperator && storedValue !== null) {
+      const right = waitingForOperand ? storedValue : numericValue();
+      const left = storedValue, op = pendingOperator, result = calculate(left, op, right);
+      expression.textContent = formatValue(left) + " " + operatorLabels[op] + " " + formatValue(right) + " =";
+      if (!Number.isFinite(result)) { currentValue = "錯誤"; hasError = true; }
+      else { currentValue = formatValue(result); lastOperator = op; lastOperand = right; }
+      storedValue = null; pendingOperator = null; waitingForOperand = true;
+    } else if (lastOperator && lastOperand !== null) {
+      const left = numericValue(), result = calculate(left, lastOperator, lastOperand);
+      expression.textContent = formatValue(left) + " " + operatorLabels[lastOperator] + " " + formatValue(lastOperand) + " =";
+      currentValue = formatValue(result); hasError = !Number.isFinite(result); waitingForOperand = true;
+    }
+    renderDisplay();
+  }
+  function handleAction(action) {
+    if (action === "clear") return resetCalculator();
+    if (hasError) return resetCalculator();
+    if (action === "decimal") {
+      if (waitingForOperand) { currentValue = "0."; waitingForOperand = false; }
+      else if (!currentValue.includes(".")) currentValue += ".";
+      renderDisplay();
+    } else if (action === "sign") {
+      if (numericValue() !== 0) currentValue = currentValue.startsWith("-") ? currentValue.slice(1) : "-" + currentValue;
+      renderDisplay();
+    } else if (action === "percent") {
+      currentValue = formatValue(numericValue() / 100); waitingForOperand = true; renderDisplay();
+    } else if (action === "backspace") {
+      if (waitingForOperand) return;
+      currentValue = currentValue.length <= 1 || (currentValue.length === 2 && currentValue.startsWith("-")) ? "0" : currentValue.slice(0, -1);
+      renderDisplay();
+    } else if (action === "equals") equals();
+  }
+  $("#calculatorFab")?.addEventListener("click", showCalculator);
+  $("#calculatorInlineBtn")?.addEventListener("click", showCalculator);
+  $("#calculatorClose")?.addEventListener("click", hideCalculator);
+  overlay.addEventListener("click", (event) => { if (event.target === overlay) hideCalculator(); });
+  $("#calculatorKeys")?.addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (!button) return;
+    if (button.dataset.calcDigit !== undefined) enterDigit(button.dataset.calcDigit);
+    else if (button.dataset.calcOperator) chooseOperator(button.dataset.calcOperator);
+    else if (button.dataset.calcAction) handleAction(button.dataset.calcAction);
+  });
+  useResultButton?.addEventListener("click", () => {
+    if (!transactionDialog?.open || hasError) return;
+    amountInput.value = formatValue(numericValue());
+    hideCalculator();
+    amountInput.focus({ preventScroll: true });
+    amountInput.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  document.addEventListener("keydown", (event) => {
+    if (overlay.hidden) return;
+    if (event.key === "Escape") { event.preventDefault(); hideCalculator(); }
+    else if (/^\\d$/.test(event.key)) enterDigit(event.key);
+    else if (["+", "-", "*", "/"].includes(event.key)) chooseOperator(event.key);
+    else if (event.key === "Enter" || event.key === "=") { event.preventDefault(); equals(); }
+    else if (event.key === ".") handleAction("decimal");
+    else if (event.key === "Backspace") handleAction("backspace");
+  });
+  renderDisplay();
+}
+
 /* =========================
    初始化
    ========================= */
@@ -1717,6 +1855,9 @@ function initialize() {
   $("#versionBtn")?.addEventListener("click", () => changelogDialog?.showModal());
   $("#closeChangelog")?.addEventListener("click", () => changelogDialog?.close());
   $("#closeChangelogFooter")?.addEventListener("click", () => changelogDialog?.close());
+
+  // 臨時計算機獨立運作，不會自動寫入記帳欄位。
+  initializeCalculator();
 
   // 初次渲染與側邊選單。
   render();
