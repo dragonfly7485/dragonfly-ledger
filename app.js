@@ -1627,7 +1627,7 @@ function initializeCalculator() {
     if (overlay.open) overlay.close();
     document.body.classList.remove("calculator-open");
     if (transactionDialog?.open) amountInput?.focus({ preventScroll: true });
-    else $("#calculatorFab")?.focus({ preventScroll: true });
+    else $("#calculatorInlineBtn")?.focus({ preventScroll: true });
   }
   function calculate(left, operator, right) {
     if (operator === "+") return left + right;
@@ -1690,7 +1690,6 @@ function initializeCalculator() {
       renderDisplay();
     } else if (action === "equals") equals();
   }
-  $("#calculatorFab")?.addEventListener("click", showCalculator);
   $("#calculatorInlineBtn")?.addEventListener("click", showCalculator);
   $("#calculatorClose")?.addEventListener("click", hideCalculator);
   overlay.addEventListener("click", (event) => { if (event.target === overlay) hideCalculator(); });
@@ -1717,9 +1716,7 @@ function initializeCalculator() {
     else if (event.key === ".") handleAction("decimal");
     else if (event.key === "Backspace") handleAction("backspace");
   });
-  // 初始狀態一定保持關閉，只有使用者點按鈕才會顯示。
-  overlay.hidden = true;
-  $("#calculatorClose")?.addEventListener("click", hideCalculator);
+  // dialog 預設 closed 即保持隱藏；不可設定 hidden，否則 showModal() 後仍可能看不見面板，卻攔截整個頁面的互動。
   renderDisplay();
 }
 
