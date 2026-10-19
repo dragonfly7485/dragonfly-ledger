@@ -1755,12 +1755,30 @@ function initialize() {
   $("#carrierBtn")?.addEventListener("click", openCarrierDisplay);
   $("#closeCarrierDialog")?.addEventListener("click", () => $("#carrierDialog")?.close());
   $("#closeCarrierDone")?.addEventListener("click", () => $("#carrierDialog")?.close());
+  $("#carrierDialog")?.addEventListener("click", (event) => {
+    const dialog = event.currentTarget;
+    if (event.target !== dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    const clickedOutside =
+      event.clientX < rect.left || event.clientX > rect.right ||
+      event.clientY < rect.top || event.clientY > rect.bottom;
+    if (clickedOutside) dialog.close();
+  });
 
   // 新增與編輯視窗。
   $("#addBtn").addEventListener("click", () => openForm());
   $("#closeDialog").addEventListener("click", closeForm);
   $("#cancelDialog").addEventListener("click", closeForm);
   $("#transactionForm").addEventListener("submit", saveForm);
+  $("#transactionDialog")?.addEventListener("click", (event) => {
+    const dialog = event.currentTarget;
+    if (event.target !== dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    const clickedOutside =
+      event.clientX < rect.left || event.clientX > rect.right ||
+      event.clientY < rect.top || event.clientY > rect.bottom;
+    if (clickedOutside) closeForm();
+  });
 
   $("#cancelDeleteDialog").addEventListener("click", closeDeleteDialog);
   $("#confirmDeleteRecord").addEventListener("click", confirmDeleteRecord);
