@@ -115,15 +115,6 @@
       </div>
     </header>
 
-    <!-- 隨時可開啟的臨時計算機 -->
-    <button id="calculatorFab" class="calculator-fab" type="button" aria-label="計算機" aria-haspopup="dialog">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="4" y="2.5" width="16" height="19" rx="2.5"></rect>
-        <rect x="7" y="5.5" width="10" height="4" rx="1"></rect>
-        <path d="M8 13h.01M12 13h.01M16 13h.01M8 16.5h.01M12 16.5h.01M16 16.5h.01M8 19.5h.01M12 19.5h.01M16 19.5h.01"></path>
-      </svg>
-    </button>
-
     <!-- ========================
          首頁：每月收支總覽
          ======================== -->
@@ -506,6 +497,8 @@
       <ul>
         <li>首頁新增「顯示載具」快捷按鈕，可在設定中儲存手機條碼並控制按鈕顯示。</li>
         <li>載具條碼僅儲存在本機，不會上傳或包含在記帳備份檔。</li>
+        <li>新增金額欄位旁的計算機，可將計算結果帶入金額。</li>
+        <li>修正計算機介面無法顯示卻阻擋其他操作的問題。</li>
       </ul>
     </div>
     <div class="changelog-entry">
@@ -607,8 +600,14 @@
           required
           aria-label="記帳金額"
         >
+        <button id="calculatorInlineBtn" class="calculator-inline-button" type="button" aria-label="計算機" title="計算機">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2.5" width="16" height="19" rx="2.5"></rect>
+            <rect x="7" y="5.5" width="10" height="4" rx="1"></rect>
+            <path d="M8 13h.01M12 13h.01M16 13h.01M8 16.5h.01M12 16.5h.01M16 16.5h.01M8 19.5h.01M12 19.5h.01M16 19.5h.01"></path>
+          </svg>
+        </button>
       </div>
-      <button id="calculatorInlineBtn" class="calculator-inline-button" type="button">⌗ 開啟臨時計算機</button>
 
       <label class="field-label" for="category">分類</label>
       <select id="category" required></select>
