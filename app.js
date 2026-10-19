@@ -1616,20 +1616,16 @@ function initializeCalculator() {
     expression.textContent = ""; renderDisplay();
   }
   function showCalculator() {
-    const activeDialog = document.querySelector("dialog[open]");
-    // 新增記帳視窗開啟時，把計算機放進該視窗的 DOM，
-    // 避免 iOS 上兩個原生 dialog 的 top-layer 行為互相卡住。
-    if (activeDialog && !activeDialog.contains(overlay)) activeDialog.appendChild(overlay);
-    else if (!activeDialog && overlay.parentElement !== document.body) document.body.appendChild(overlay);
-    overlay.hidden = false;
+    // 使用原生 modal dialog，確保計算機只在使用者點擊按鈕後開啟，
+    // 並能正確疊在「新增記帳」視窗上方。
+    if (!overlay.open) overlay.showModal();
     document.body.classList.add("calculator-open");
     renderDisplay();
     $("#calculatorDisplayFocus")?.focus({ preventScroll: true });
   }
   function hideCalculator() {
-    overlay.hidden = true;
+    if (overlay.open) overlay.close();
     document.body.classList.remove("calculator-open");
-    if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
     if (transactionDialog?.open) amountInput?.focus({ preventScroll: true });
     else $("#calculatorFab")?.focus({ preventScroll: true });
   }
@@ -1713,7 +1709,7 @@ function initializeCalculator() {
     amountInput.dispatchEvent(new Event("input", { bubbles: true }));
   });
   document.addEventListener("keydown", (event) => {
-    if (overlay.hidden) return;
+    if (!overlay.open) return;
     if (event.key === "Escape") { event.preventDefault(); hideCalculator(); }
     else if (/^\d$/.test(event.key)) enterDigit(event.key);
     else if (["+", "-", "*", "/"].includes(event.key)) chooseOperator(event.key);
