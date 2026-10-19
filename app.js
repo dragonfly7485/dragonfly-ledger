@@ -1616,19 +1616,16 @@ function initializeCalculator() {
     expression.textContent = "可進行臨時計算"; renderDisplay();
   }
   function showCalculator() {
-    const activeDialog = document.querySelector("dialog[open]");
-    if (activeDialog && activeDialog !== overlay.parentElement) activeDialog.appendChild(overlay);
-    else if (!activeDialog && overlay.parentElement !== document.body) document.body.appendChild(overlay);
-    overlay.hidden = false;
+    if (!overlay.open) overlay.showModal();
     document.body.classList.add("calculator-open");
     renderDisplay();
     $("#calculatorClose")?.focus({ preventScroll: true });
   }
   function hideCalculator() {
-    overlay.hidden = true;
+    if (overlay.open) overlay.close();
     document.body.classList.remove("calculator-open");
-    if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
-    $("#calculatorFab")?.focus({ preventScroll: true });
+    if (transactionDialog?.open) amountInput?.focus({ preventScroll: true });
+    else $("#calculatorFab")?.focus({ preventScroll: true });
   }
   function calculate(left, operator, right) {
     if (operator === "+") return left + right;
@@ -1710,7 +1707,7 @@ function initializeCalculator() {
     amountInput.dispatchEvent(new Event("input", { bubbles: true }));
   });
   document.addEventListener("keydown", (event) => {
-    if (overlay.hidden) return;
+    if (!overlay.open) return;
     if (event.key === "Escape") { event.preventDefault(); hideCalculator(); }
     else if (/^\\d$/.test(event.key)) enterDigit(event.key);
     else if (["+", "-", "*", "/"].includes(event.key)) chooseOperator(event.key);
