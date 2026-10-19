@@ -51,7 +51,14 @@ function loadRecords() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : [];
-    return Array.isArray(parsed) ? parsed : [];
+
+    // 相容事故期間曾使用的 { records: [...] } 格式。
+    // 寫入時仍維持原本的陣列格式，避免再改動資料結構。
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && typeof parsed === "object" && Array.isArray(parsed.records)) {
+      return parsed.records;
+    }
+    return [];
   } catch (error) {
     console.error("讀取帳目失敗：", error);
     return [];
