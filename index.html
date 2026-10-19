@@ -387,7 +387,7 @@
             <strong>應用程式</strong>
             <p>蜻蜓牌記帳本</p>
           </div>
-          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.0.2</button>
+          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.1</button>
         </div>
 
         <div class="settings-row">
@@ -404,6 +404,27 @@
             <p>儲存在目前裝置</p>
           </div>
           <span class="settings-value">本機</span>
+        </div>
+
+        <div class="settings-backup carrier-settings">
+          <h3>電子發票載具</h3>
+          <p class="settings-note">
+            設定你的手機條碼後，首頁就能快速顯示給店員掃描。條碼只儲存在這台裝置，不會上傳或放進記帳備份檔。
+          </p>
+          <label class="carrier-input-label" for="carrierBarcodeInput">手機條碼</label>
+          <input id="carrierBarcodeInput" class="carrier-barcode-input" type="text" maxlength="8" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="/AB12CD3" aria-describedby="carrierSettingsHelp carrierSettingsFeedback">
+          <button id="saveCarrierBtn" class="save-button settings-action-button" type="button">儲存載具條碼</button>
+          <p id="carrierSettingsFeedback" class="settings-help" role="status" aria-live="polite"></p>
+          <label class="carrier-toggle-row" for="carrierEnabledToggle">
+            <span>
+              <strong>顯示首頁「顯示載具」按鈕</strong>
+              <small>關閉後，首頁不會顯示載具按鈕。</small>
+            </span>
+            <input id="carrierEnabledToggle" type="checkbox">
+          </label>
+          <p id="carrierSettingsHelp" class="settings-help">
+            請輸入以「/」開頭、共 8 個字元的手機條碼。清空並儲存即可移除載具；未設定有效條碼時，首頁按鈕會自動隱藏。
+          </p>
         </div>
 
         <div class="settings-backup">
@@ -427,6 +448,11 @@
       </div>
     </section>
 
+    <!-- 首頁快捷按鈕：載具未設定或關閉時自動隱藏 -->
+    <button id="carrierBtn" class="add-button carrier-button" type="button" hidden>
+      ▦ 顯示載具
+    </button>
+
     <!-- 新增記帳按鈕 -->
     <button id="addBtn" class="add-button" type="button">
       ＋ 新增記帳
@@ -449,16 +475,35 @@
     </div>
   </dialog>
 
+  <dialog id="carrierDialog" class="carrier-dialog" aria-labelledby="carrierDialogTitle">
+    <div class="dialog-heading">
+      <h2 id="carrierDialogTitle">電子發票手機條碼</h2>
+      <button id="closeCarrierDialog" class="close-button" type="button" aria-label="關閉載具">×</button>
+    </div>
+    <p class="carrier-dialog-copy">請將下方條碼交給店員掃描。</p>
+    <div class="carrier-barcode-panel">
+      <div id="carrierBarcodeSvg" role="img" aria-label="電子發票手機條碼"></div>
+      <strong id="carrierBarcodeText"></strong>
+    </div>
+    <button id="closeCarrierDone" class="save-button" type="button">完成</button>
+  </dialog>
+
   <dialog id="changelogDialog" class="changelog-dialog" aria-labelledby="changelogTitle">
     <div class="dialog-heading">
       <h2 id="changelogTitle">版本更新紀錄</h2>
       <button id="closeChangelog" class="close-button" type="button" aria-label="關閉更新紀錄">×</button>
     </div>
     <div class="changelog-entry">
-      <h3>v2.0.2 <span>目前版本</span></h3>
+      <h3>v2.1 <span>目前版本</span></h3>
+      <ul>
+        <li>首頁新增「顯示載具」快捷按鈕，可在設定中儲存手機條碼並控制按鈕顯示。</li>
+        <li>載具條碼僅儲存在本機，不會上傳或包含在記帳備份檔。</li>
+      </ul>
+    </div>
+    <div class="changelog-entry">
+      <h3>v2.0.2</h3>
       <ul>
         <li>新增全部重置，可清除本機記帳紀錄與預算，並加入二次確認。</li>
-        
       </ul>
     </div>
     <div class="changelog-entry">
