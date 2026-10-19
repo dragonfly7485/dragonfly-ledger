@@ -226,6 +226,10 @@ section {
   color: #fff;
 }
 
+:root[data-theme="dark"] .calculator-menu-button {
+  color: #fff;
+}
+
 .calculator-menu-button svg {
   display: block;
   width: 16px;
