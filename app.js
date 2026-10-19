@@ -1627,7 +1627,7 @@ function initializeCalculator() {
     if (overlay.open) overlay.close();
     document.body.classList.remove("calculator-open");
     if (transactionDialog?.open) amountInput?.focus({ preventScroll: true });
-    else $("#calculatorInlineBtn")?.focus({ preventScroll: true });
+    else $("#menuBtn")?.focus({ preventScroll: true });
   }
   function calculate(left, operator, right) {
     if (operator === "+") return left + right;
