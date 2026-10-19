@@ -47,20 +47,41 @@ let editingId = null;
    資料儲存
    ========================= */
 
-function loadRecords() {
+function readLedgerStorage() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    const parsed = saved ? JSON.parse(saved) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!saved) return { records: [], carrierSettings: null };
+    const parsed = JSON.parse(saved);
+
+    // 舊版資料是純陣列；新版則把帳目與載具放在同一筆本機資料中。
+    if (Array.isArray(parsed)) return { records: parsed, carrierSettings: null };
+    if (parsed && typeof parsed === "object") {
+      return {
+        records: Array.isArray(parsed.records) ? parsed.records : [],
+        carrierSettings: parsed.carrierSettings &&
+          typeof parsed.carrierSettings === "object"
+          ? parsed.carrierSettings
+          : null
+      };
+    }
+    return { records: [], carrierSettings: null };
   } catch (error) {
-    console.error("讀取帳目失敗：", error);
-    return [];
+    console.error("讀取本機記帳資料失敗：", error);
+    return { records: [], carrierSettings: null };
   }
+}
+
+function loadRecords() {
+  return readLedgerStorage().records;
 }
 
 function saveRecords() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    const stored = readLedgerStorage();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      records,
+      carrierSettings: carrierSettings || stored.carrierSettings || null
+    }));
     return true;
   } catch (error) {
     console.error("儲存帳目失敗：", error);
@@ -124,23 +145,26 @@ function readCarrierCookie() {
 
 function loadCarrierSettings() {
   const defaults = { barcode: "", enabled: true };
-  let parsed = null;
+  const storedSettings = readLedgerStorage().carrierSettings;
+  let legacySettings = null;
 
   try {
     const saved = localStorage.getItem(CARRIER_STORAGE_KEY);
-    if (saved) parsed = JSON.parse(saved);
+    if (saved) legacySettings = JSON.parse(saved);
   } catch (error) {
-    console.error("讀取載具本機設定失敗：", error);
+    console.error("讀取舊版載具設定失敗：", error);
   }
 
-  // iOS 部分瀏覽情境可能無法穩定保留 localStorage，使用同源 Cookie 作為備援。
+  // 優先讀取與記帳紀錄放在同一筆 localStorage 的設定，再相容舊版與 Cookie 備援。
   const cookieSettings = readCarrierCookie();
-  const localBarcode = normalizeCarrierBarcode(parsed?.barcode);
-  const cookieBarcode = normalizeCarrierBarcode(cookieSettings?.barcode);
-  const selected = isValidCarrierBarcode(localBarcode) ? parsed : 
-    (isValidCarrierBarcode(cookieBarcode) ? cookieSettings : (parsed || cookieSettings));
+  const candidates = [storedSettings, legacySettings, cookieSettings];
+  const selected = candidates.find((item) =>
+    item && typeof item === "object" &&
+    (isValidCarrierBarcode(normalizeCarrierBarcode(item.barcode)) ||
+      item.barcode === "")
+  );
 
-  if (!selected || typeof selected !== "object") return defaults;
+  if (!selected) return defaults;
   const barcode = normalizeCarrierBarcode(selected.barcode);
   return {
     barcode: isValidCarrierBarcode(barcode) ? barcode : "",
@@ -149,15 +173,28 @@ function loadCarrierSettings() {
 }
 
 function persistCarrierSettings() {
-  let localSaved = false;
-  let cookieSaved = false;
+  let unifiedSaved = false;
   const serialized = JSON.stringify(carrierSettings);
 
+  // 將載具設定與帳目寫進同一個 STORAGE_KEY，帳目本身不會被覆蓋。
+  try {
+    const stored = readLedgerStorage();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      records: Array.isArray(records) ? records : stored.records,
+      carrierSettings
+    }));
+    const verified = readLedgerStorage().carrierSettings;
+    unifiedSaved = verified?.barcode === carrierSettings.barcode &&
+      verified?.enabled === carrierSettings.enabled;
+  } catch (error) {
+    console.error("儲存整合記帳資料失敗：", error);
+  }
+
+  // 舊版備援保留，方便從舊版升級時復原設定。
   try {
     localStorage.setItem(CARRIER_STORAGE_KEY, serialized);
-    localSaved = localStorage.getItem(CARRIER_STORAGE_KEY) === serialized;
   } catch (error) {
-    console.error("儲存載具本機設定失敗：", error);
+    console.error("儲存舊版載具備援失敗：", error);
   }
 
   try {
@@ -166,14 +203,12 @@ function persistCarrierSettings() {
       encodeURIComponent(CARRIER_STORAGE_KEY) + "=" +
       encodeURIComponent(serialized) +
       "; Max-Age=31536000; Path=/; SameSite=Lax" + secure;
-    cookieSaved = readCarrierCookie()?.barcode === carrierSettings.barcode &&
-      readCarrierCookie()?.enabled === carrierSettings.enabled;
   } catch (error) {
-    console.error("儲存載具備援設定失敗：", error);
+    console.error("儲存載具 Cookie 備援失敗：", error);
   }
 
   updateCarrierButtonVisibility();
-  return localSaved || cookieSaved;
+  return unifiedSaved;
 }
 
 function updateCarrierButtonVisibility() {
@@ -1480,7 +1515,10 @@ function importBackup(file) {
       const previousRecords = records;
       const previousBudgets = budgets;
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(importedRecords));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          records: importedRecords,
+          carrierSettings
+        }));
         localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(importedBudgets));
       } catch (storageError) {
         try {
@@ -1550,7 +1588,10 @@ function executeResetAllData(useFallback = false) {
   const previousBudgets = budgets;
 
   try {
-    localStorage.setItem(STORAGE_KEY, "[]");
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      records: [],
+      carrierSettings
+    }));
     localStorage.setItem(BUDGET_STORAGE_KEY, "{}");
   } catch (error) {
     try {
