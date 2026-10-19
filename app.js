@@ -51,12 +51,7 @@ function loadRecords() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     const parsed = saved ? JSON.parse(saved) : [];
-    // 相容整合儲存期間產生的格式，避免舊版資料被誤判成 0 筆。
-    if (Array.isArray(parsed)) return parsed;
-    if (parsed && typeof parsed === "object" && Array.isArray(parsed.records)) {
-      return parsed.records;
-    }
-    return [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.error("讀取帳目失敗：", error);
     return [];
