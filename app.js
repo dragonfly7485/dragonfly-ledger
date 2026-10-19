@@ -110,32 +110,70 @@ function isValidCarrierBarcode(value) {
   return CARRIER_PATTERN.test(normalizeCarrierBarcode(value));
 }
 
-function loadCarrierSettings() {
-  const defaults = { barcode: "", enabled: true };
+function readCarrierCookie() {
   try {
-    const saved = localStorage.getItem(CARRIER_STORAGE_KEY);
-    if (!saved) return defaults;
-    const parsed = JSON.parse(saved);
-    const barcode = normalizeCarrierBarcode(parsed?.barcode);
-    return {
-      barcode: isValidCarrierBarcode(barcode) ? barcode : "",
-      enabled: parsed?.enabled !== false
-    };
+    const prefix = encodeURIComponent(CARRIER_STORAGE_KEY) + "=";
+    const item = document.cookie.split("; ").find((part) => part.startsWith(prefix));
+    if (!item) return null;
+    return JSON.parse(decodeURIComponent(item.slice(prefix.length)));
   } catch (error) {
-    console.error("讀取載具設定失敗：", error);
-    return defaults;
+    console.error("讀取載具備援設定失敗：", error);
+    return null;
   }
 }
 
-function persistCarrierSettings() {
+function loadCarrierSettings() {
+  const defaults = { barcode: "", enabled: true };
+  let parsed = null;
+
   try {
-    localStorage.setItem(CARRIER_STORAGE_KEY, JSON.stringify(carrierSettings));
-    updateCarrierButtonVisibility();
-    return true;
+    const saved = localStorage.getItem(CARRIER_STORAGE_KEY);
+    if (saved) parsed = JSON.parse(saved);
   } catch (error) {
-    console.error("儲存載具設定失敗：", error);
-    return false;
+    console.error("讀取載具本機設定失敗：", error);
   }
+
+  // iOS 部分瀏覽情境可能無法穩定保留 localStorage，使用同源 Cookie 作為備援。
+  const cookieSettings = readCarrierCookie();
+  const localBarcode = normalizeCarrierBarcode(parsed?.barcode);
+  const cookieBarcode = normalizeCarrierBarcode(cookieSettings?.barcode);
+  const selected = isValidCarrierBarcode(localBarcode) ? parsed : 
+    (isValidCarrierBarcode(cookieBarcode) ? cookieSettings : (parsed || cookieSettings));
+
+  if (!selected || typeof selected !== "object") return defaults;
+  const barcode = normalizeCarrierBarcode(selected.barcode);
+  return {
+    barcode: isValidCarrierBarcode(barcode) ? barcode : "",
+    enabled: selected.enabled !== false
+  };
+}
+
+function persistCarrierSettings() {
+  let localSaved = false;
+  let cookieSaved = false;
+  const serialized = JSON.stringify(carrierSettings);
+
+  try {
+    localStorage.setItem(CARRIER_STORAGE_KEY, serialized);
+    localSaved = localStorage.getItem(CARRIER_STORAGE_KEY) === serialized;
+  } catch (error) {
+    console.error("儲存載具本機設定失敗：", error);
+  }
+
+  try {
+    const secure = location.protocol === "https:" ? "; Secure" : "";
+    document.cookie =
+      encodeURIComponent(CARRIER_STORAGE_KEY) + "=" +
+      encodeURIComponent(serialized) +
+      "; Max-Age=31536000; Path=/; SameSite=Lax" + secure;
+    cookieSaved = readCarrierCookie()?.barcode === carrierSettings.barcode &&
+      readCarrierCookie()?.enabled === carrierSettings.enabled;
+  } catch (error) {
+    console.error("儲存載具備援設定失敗：", error);
+  }
+
+  updateCarrierButtonVisibility();
+  return localSaved || cookieSaved;
 }
 
 function updateCarrierButtonVisibility() {
