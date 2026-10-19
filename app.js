@@ -1691,6 +1691,7 @@ function initializeCalculator() {
     } else if (action === "equals") equals();
   }
   $("#calculatorInlineBtn")?.addEventListener("click", showCalculator);
+  $("#calculatorHomeBtn")?.addEventListener("click", showCalculator);
   $("#calculatorClose")?.addEventListener("click", hideCalculator);
   overlay.addEventListener("click", (event) => { if (event.target === overlay) hideCalculator(); });
   $("#calculatorKeys")?.addEventListener("click", (event) => {
