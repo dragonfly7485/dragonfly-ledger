@@ -4,6 +4,7 @@ const STORAGE_KEY = "dragonfly-ledger-v1";
 const BUDGET_STORAGE_KEY = "dragonfly-ledger-budgets-v1";
 const THEME_STORAGE_KEY = "dragonfly-ledger-theme-v1";
 const CARRIER_STORAGE_KEY = "dragonfly-ledger-carrier-v1";
+const CARRIER_PATTERN = /^\/[A-Z0-9.+-]{7}$/;
 
 const categories = {
   expense: ["飲食", "交通", "購物", "娛樂", "生活", "學習", "醫療", "其他"],
@@ -107,7 +108,6 @@ function saveBudgets() {
    電子發票手機條碼（僅儲存在本機）
    ========================= */
 
-const CARRIER_PATTERN = /^\/[A-Z0-9.+-]{7}$/;
 
 function normalizeCarrierBarcode(value) {
   return typeof value === "string" ? value.trim().toUpperCase() : "";
