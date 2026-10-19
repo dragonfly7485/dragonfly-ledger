@@ -77,11 +77,18 @@ function loadRecords() {
 
 function saveRecords() {
   try {
-    const stored = readLedgerStorage();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      records,
-      carrierSettings: carrierSettings || stored.carrierSettings || null
-    }));
+    // 保留整合格式中的載具設定，再以原本的純陣列格式儲存帳目，
+    // 避免其他既有帳目功能遇到資料格式變更。
+    try {
+      const stored = readLedgerStorage();
+      const settingsToKeep = carrierSettings || stored.carrierSettings;
+      if (settingsToKeep) {
+        localStorage.setItem(CARRIER_STORAGE_KEY, JSON.stringify(settingsToKeep));
+      }
+    } catch (carrierError) {
+      console.error("保留載具設定時發生錯誤：", carrierError);
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     return true;
   } catch (error) {
     console.error("儲存帳目失敗：", error);
