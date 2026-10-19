@@ -115,6 +115,12 @@
       </div>
     </header>
 
+    <!-- 隨時可開啟的臨時計算機 -->
+    <button id="calculatorFab" class="calculator-fab" type="button" aria-label="開啟計算機" aria-haspopup="dialog">
+      <span aria-hidden="true">⌗</span>
+      <span>計算機</span>
+    </button>
+
     <!-- ========================
          首頁：每月收支總覽
          ======================== -->
@@ -599,6 +605,7 @@
           aria-label="記帳金額"
         >
       </div>
+      <button id="calculatorInlineBtn" class="calculator-inline-button" type="button">⌗ 開啟臨時計算機</button>
 
       <label class="field-label" for="category">分類</label>
       <select id="category" required></select>
@@ -642,6 +649,46 @@
     </form>
   </dialog>
 
+  <!-- 臨時計算機：獨立介面，不會自動修改記帳資料 -->
+  <div id="calculatorOverlay" class="calculator-overlay" hidden>
+    <section class="calculator-panel" role="dialog" aria-modal="true" aria-labelledby="calculatorTitle">
+      <div class="calculator-header">
+        <div><p class="eyebrow">QUICK CALC</p><h2 id="calculatorTitle">臨時計算機</h2></div>
+        <button id="calculatorClose" class="calculator-close" type="button" aria-label="關閉計算機">×</button>
+      </div>
+      <div class="calculator-display" aria-live="polite" aria-atomic="true">
+        <div id="calculatorExpression" class="calculator-expression">可進行臨時計算</div>
+        <output id="calculatorResult" class="calculator-result">0</output>
+      </div>
+      <div id="calculatorKeys" class="calculator-keys">
+        <button type="button" data-calc-action="clear" class="calc-key calc-key-function">AC</button>
+        <button type="button" data-calc-action="sign" class="calc-key calc-key-function">+/−</button>
+        <button type="button" data-calc-action="percent" class="calc-key calc-key-function">%</button>
+        <button type="button" data-calc-operator="/" class="calc-key calc-key-operator">÷</button>
+        <button type="button" data-calc-digit="7" class="calc-key">7</button>
+        <button type="button" data-calc-digit="8" class="calc-key">8</button>
+        <button type="button" data-calc-digit="9" class="calc-key">9</button>
+        <button type="button" data-calc-operator="*" class="calc-key calc-key-operator">×</button>
+        <button type="button" data-calc-digit="4" class="calc-key">4</button>
+        <button type="button" data-calc-digit="5" class="calc-key">5</button>
+        <button type="button" data-calc-digit="6" class="calc-key">6</button>
+        <button type="button" data-calc-operator="-" class="calc-key calc-key-operator">−</button>
+        <button type="button" data-calc-digit="1" class="calc-key">1</button>
+        <button type="button" data-calc-digit="2" class="calc-key">2</button>
+        <button type="button" data-calc-digit="3" class="calc-key">3</button>
+        <button type="button" data-calc-operator="+" class="calc-key calc-key-operator">+</button>
+        <button type="button" data-calc-action="backspace" class="calc-key calc-key-function">⌫</button>
+        <button type="button" data-calc-digit="0" class="calc-key calc-key-zero">0</button>
+        <button type="button" data-calc-action="decimal" class="calc-key">.</button>
+        <button type="button" data-calc-action="equals" class="calc-key calc-key-equals">=</button>
+      </div>
+      <div class="calculator-footer">
+        <span id="calculatorHint">計算結果不會自動存入記帳</span>
+        <button id="calculatorUseResult" class="calculator-use-result" type="button" hidden>帶入金額</button>
+      </div>
+    </section>
+  </div>
+
   <!-- 主程式 -->
   <script>
     (function () {
@@ -667,7 +714,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261019-4" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261019-5" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
