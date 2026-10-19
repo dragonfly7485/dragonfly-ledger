@@ -2048,10 +2048,16 @@ dialog select {
 .calculator-fab svg { display: block; width: 22px; height: 22px; }
 .calculator-fab:active { transform: scale(.95); }
 .calculator-inline-button {
-  display: block; width: 100%; min-height: 42px; margin: 10px 0 4px;
-  border: 1px solid var(--border); border-radius: 11px;
-  background: var(--surface-soft); color: var(--text); font-weight: 750;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 42px; width: 42px; height: 42px; min-height: 42px;
+  margin: 0; padding: 0;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface-soft); color: var(--green-dark);
+  cursor: pointer; touch-action: manipulation;
 }
+.calculator-inline-button svg { display: block; width: 22px; height: 22px; }
+.calculator-inline-button:active { transform: scale(.95); }
+:root[data-theme="dark"] .calculator-inline-button { color: var(--green); }
 .calculator-overlay {
   position: fixed; z-index: 1000000; inset: 0;
   display: grid; place-items: center;
@@ -2093,7 +2099,6 @@ dialog select {
 :root[data-theme="dark"] .calc-key-equals,
 :root[data-theme="dark"] .calculator-use-result { background: #39785a; }
 @media (max-width: 390px) {
-  .calculator-fab { width: 39px; height: 39px; min-height: 39px; flex-basis: 39px; }
   .calculator-panel { padding: 16px; border-radius: 23px; }
   .calculator-keys { gap: 7px; }
   .calc-key { min-height: 51px; border-radius: 14px; }
