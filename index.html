@@ -656,7 +656,7 @@
         <div><p class="eyebrow">QUICK CALC</p><h2 id="calculatorTitle">臨時計算機</h2></div>
         <button id="calculatorClose" class="calculator-close" type="button" aria-label="關閉計算機">×</button>
       </div>
-      <div class="calculator-display" aria-live="polite" aria-atomic="true">
+      <div id="calculatorDisplayFocus" class="calculator-display" tabindex="-1" aria-live="polite" aria-atomic="true">
         <div id="calculatorExpression" class="calculator-expression">可進行臨時計算</div>
         <output id="calculatorResult" class="calculator-result">0</output>
       </div>
@@ -714,7 +714,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261019-6" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261019-7" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
