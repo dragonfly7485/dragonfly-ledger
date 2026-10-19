@@ -1090,6 +1090,127 @@ section {
   background: var(--green);
 }
 
+.carrier-button {
+  bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
+.carrier-settings .carrier-input-label {
+  display: block;
+  margin: 4px 0 7px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.carrier-barcode-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--input-background, #fbfcfb);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.carrier-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.carrier-toggle-row > span {
+  display: grid;
+  gap: 5px;
+}
+
+.carrier-toggle-row strong {
+  font-size: 13px;
+}
+
+.carrier-toggle-row small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.carrier-toggle-row input {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  accent-color: var(--green);
+}
+
+.carrier-feedback-error {
+  color: var(--red);
+}
+
+.carrier-dialog {
+  width: min(460px, calc(100% - 28px));
+}
+
+.carrier-dialog-copy {
+  margin: -4px 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.carrier-barcode-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px 10px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  color: #111;
+}
+
+.carrier-barcode-panel > div {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+.carrier-barcode-panel svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 100px;
+}
+
+.carrier-barcode-panel strong {
+  color: #111;
+  font-size: 20px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.carrier-dialog .save-button {
+  margin-top: 14px;
+}
+
+@media (max-width: 390px) {
+  .carrier-button {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  .carrier-barcode-panel {
+    padding: 14px 6px;
+  }
+  .carrier-barcode-panel svg {
+    height: 88px;
+  }
+}
+
 /* =========================
    新增／編輯對話框
    ========================= */
