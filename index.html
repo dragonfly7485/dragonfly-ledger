@@ -116,9 +116,12 @@
     </header>
 
     <!-- 隨時可開啟的臨時計算機 -->
-    <button id="calculatorFab" class="calculator-fab" type="button" aria-label="開啟計算機" aria-haspopup="dialog">
-      <span aria-hidden="true">⌗</span>
-      <span>計算機</span>
+    <button id="calculatorFab" class="calculator-fab" type="button" aria-label="計算機" aria-haspopup="dialog">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="2.5" width="16" height="19" rx="2.5"></rect>
+        <rect x="7" y="5.5" width="10" height="4" rx="1"></rect>
+        <path d="M8 13h.01M12 13h.01M16 13h.01M8 16.5h.01M12 16.5h.01M16 16.5h.01M8 19.5h.01M12 19.5h.01M16 19.5h.01"></path>
+      </svg>
     </button>
 
     <!-- ========================
@@ -650,7 +653,7 @@
   </dialog>
 
   <!-- 臨時計算機：獨立介面，不會自動修改記帳資料 -->
-  <div id="calculatorOverlay" class="calculator-overlay" role="presentation" hidden>
+  <dialog id="calculatorOverlay" class="calculator-overlay" aria-labelledby="calculatorTitle">
     <section class="calculator-panel" role="dialog" aria-modal="true" aria-labelledby="calculatorTitle">
       <div class="calculator-header">
         <div><p class="eyebrow">QUICK CALC</p><h2 id="calculatorTitle">計算機</h2></div>
@@ -687,7 +690,7 @@
         <button id="calculatorUseResult" class="calculator-use-result" type="button" hidden>帶入金額</button>
       </div>
     </section>
-  </div>
+  </dialog>
 
   <!-- 主程式 -->
   <script>
@@ -714,7 +717,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261019-9" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261019-10" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
