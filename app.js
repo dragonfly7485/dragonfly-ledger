@@ -1574,38 +1574,70 @@ function importBackup(file) {
   reader.readAsText(file);
 }
 
-function resetAllData() {
-  const dialog = $("#resetDialog");
-  const input = $("#resetConfirmInput");
-  const confirmButton = $("#confirmResetBtn");
+let resetCountdownTimer = null;
+let resetCountdownRemaining = 5;
 
-  if (!dialog || !input || !confirmButton) {
-    alert("重置確認視窗未載入，資料沒有變更。請重新整理後再試。");
-    return;
+function stopResetCountdown() {
+  if (resetCountdownTimer !== null) {
+    clearInterval(resetCountdownTimer);
+    resetCountdownTimer = null;
   }
-
-  input.value = "";
-  confirmButton.disabled = true;
-  try {
-    if (!dialog.open) dialog.showModal();
-    // 不在開窗時自動聚焦輸入欄，避免 iOS 鍵盤推動畫面造成視窗跳動。
-  } catch (error) {
-    console.error("無法開啟重置確認視窗：", error);
-    const typed = window.prompt("此裝置無法開啟確認視窗。若要清除本機所有記帳紀錄與預算，請輸入 RESET。");
-    if (typed === "RESET") executeResetAllData(true);
+  resetCountdownRemaining = 5;
+  const button = $("#confirmResetBtn");
+  if (button) {
+    button.disabled = true;
+    button.textContent = "請等待 5 秒";
   }
 }
 
-function executeResetAllData(useFallback = false) {
-  const input = $("#resetConfirmInput");
-  const confirmation = useFallback ? "RESET" : input?.value.trim();
-  if (confirmation !== "RESET") return;
+function startResetCountdown() {
+  stopResetCountdown();
+  const button = $("#confirmResetBtn");
+  const message = $("#resetCountdownMessage");
+  if (!button) return;
+  button.disabled = true;
+  button.textContent = "請等待 5 秒";
+  if (message) message.textContent = "為避免誤觸，請等待 5 秒後再確認重置。";
+  resetCountdownTimer = setInterval(() => {
+    resetCountdownRemaining -= 1;
+    if (resetCountdownRemaining > 0) {
+      button.textContent = `請等待 ${resetCountdownRemaining} 秒`;
+      if (message) message.textContent = `還需要等待 ${resetCountdownRemaining} 秒，才能執行重置。`;
+      return;
+    }
+    clearInterval(resetCountdownTimer);
+    resetCountdownTimer = null;
+    button.disabled = false;
+    button.textContent = "永久重置";
+    if (message) message.textContent = "已可確認重置。這項操作無法直接復原，請再次確認。";
+  }, 1000);
+}
+
+function resetAllData() {
+  const dialog = $("#resetDialog");
+  const confirmButton = $("#confirmResetBtn");
+  if (!dialog || !confirmButton) {
+    alert("重置確認視窗未載入，資料沒有變更。請重新整理後再試。");
+    return;
+  }
+  try {
+    if (!dialog.open) dialog.showModal();
+    startResetCountdown();
+  } catch (error) {
+    console.error("無法開啟重置確認視窗：", error);
+    alert("無法開啟重置確認視窗，資料沒有變更。請重新整理後再試。");
+  }
+}
+
+function executeResetAllData() {
+  const dialog = $("#resetDialog");
+  const confirmButton = $("#confirmResetBtn");
+  if (!confirmButton || confirmButton.disabled || resetCountdownTimer !== null) return;
 
   const previousRecordsRaw = localStorage.getItem(STORAGE_KEY);
   const previousBudgetsRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
   const previousRecords = records;
   const previousBudgets = budgets;
-
   try {
     localStorage.setItem(STORAGE_KEY, "[]");
     localStorage.setItem(BUDGET_STORAGE_KEY, "{}");
@@ -1620,19 +1652,19 @@ function executeResetAllData(useFallback = false) {
     }
     records = previousRecords;
     budgets = previousBudgets;
-    $("#resetDialog")?.close();
+    stopResetCountdown();
+    dialog?.close();
     alert("重置失敗，已嘗試保留原有資料。請確認裝置儲存空間。");
     return;
   }
-
   records = [];
   budgets = {};
-  $("#resetDialog")?.close();
+  stopResetCountdown();
+  dialog?.close();
   render();
   renderBudget();
   alert("已重置所有記帳紀錄與預算。外觀主題等設定不受影響。");
 }
-
 
 /* =========================
    臨時計算機
@@ -2161,10 +2193,9 @@ function initialize() {
     const file = event.target.files?.[0];
     if (file) importBackup(file);
   });
-  $("#cancelResetBtn")?.addEventListener("click", () => $("#resetDialog")?.close());
-  $("#resetConfirmInput")?.addEventListener("input", (event) => {
-    const valid = event.target.value.trim() === "RESET";
-    $("#confirmResetBtn").disabled = !valid;
+  $("#cancelResetBtn")?.addEventListener("click", () => {
+    stopResetCountdown();
+    $("#resetDialog")?.close();
   });
   $("#confirmResetBtn")?.addEventListener("click", executeResetAllData);
 
