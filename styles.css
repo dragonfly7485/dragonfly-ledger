@@ -2339,3 +2339,62 @@ dialog select {
   .planner-add-event-top-button { min-height: 32px; padding: 5px 8px; font-size: 10px; }
   .planner-event-list-card { padding: 15px; }
 }
+
+
+/* 行事曆微調：選取日期淡底、日期數字固定，行程圓點不推動數字 */
+.planner-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 3px 2px 5px;
+}
+.planner-day-number {
+  box-sizing: border-box;
+  display: grid;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  margin: 0;
+}
+.planner-day::after {
+  content: "";
+  display: block;
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin-top: 2px;
+}
+.planner-day-dot {
+  position: static;
+  display: block;
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin: 2px 0 0;
+  transform: none;
+}
+.planner-day.has-events::after { display: none; }
+.planner-day.selected {
+  border: 1px solid var(--green);
+  background: var(--green-light);
+}
+.planner-day.selected .planner-day-number {
+  background: transparent;
+  color: var(--text);
+}
+.planner-add-event-top-button {
+  min-height: 38px;
+  padding: 8px 13px;
+  font-size: 12px;
+}
+@media (max-width: 390px) {
+  .planner-day-number { flex-basis: 26px; width: 26px; height: 26px; }
+  .planner-add-event-top-button {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+}
