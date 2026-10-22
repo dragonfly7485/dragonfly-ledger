@@ -77,6 +77,15 @@
       <button
         class="menu-item"
         type="button"
+        data-page-target="calendar"
+      >
+        <span class="menu-item-icon" aria-hidden="true">▦</span>
+        <span>行事曆</span>
+      </button>
+
+      <button
+        class="menu-item"
+        type="button"
         data-page-target="settings"
       >
         <span class="menu-item-icon" aria-hidden="true">⚙</span>
@@ -377,6 +386,49 @@
         <span id="queryRecordCount">0 筆紀錄</span>
       </div>
       <div id="queryRecordsList" class="transaction-list"></div>
+    </section>
+
+    <!-- ========================
+         行事曆頁
+         ======================== -->
+    <section id="calendarSection" class="planner-section" hidden aria-labelledby="plannerTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">YOUR CALENDAR</p>
+          <h2 id="plannerTitle">📅 行事曆</h2>
+        </div>
+      </div>
+
+      <div class="budget-card planner-calendar-card">
+        <div class="planner-month-nav">
+          <button id="plannerPrevMonth" class="planner-month-button" type="button" aria-label="上個月">‹</button>
+          <strong id="plannerMonthLabel" aria-live="polite"></strong>
+          <button id="plannerNextMonth" class="planner-month-button" type="button" aria-label="下個月">›</button>
+        </div>
+        <div class="planner-weekdays" aria-hidden="true">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div id="plannerCalendarGrid" class="planner-calendar-grid" aria-label="當月日期"></div>
+        <p class="planner-calendar-hint"><span class="planner-dot" aria-hidden="true"></span> 有安排的日期</p>
+      </div>
+
+      <div class="budget-card planner-event-card">
+        <div class="planner-event-heading">
+          <div>
+            <p class="eyebrow">DAILY PLAN</p>
+            <h3 id="plannerSelectedDate">選擇日期</h3>
+          </div>
+          <span class="planner-event-label">當日行程</span>
+        </div>
+        <label class="planner-event-label-input" for="plannerEventText">今天有什麼事情？</label>
+        <textarea id="plannerEventText" rows="4" maxlength="2000" placeholder="例如：&#10;09:00 上課&#10;18:00 買生活用品&#10;每一行可以記一件事"></textarea>
+        <p class="planner-event-help">每一行可以記一件事，儲存後會在日期下方顯示標記。</p>
+        <div class="planner-event-actions">
+          <button id="plannerClearEvents" class="cancel-button" type="button">清空內容</button>
+          <button id="plannerSaveEvents" class="primary-button" type="button">儲存行程</button>
+        </div>
+        <p id="plannerSaveStatus" class="planner-save-status" role="status" aria-live="polite"></p>
+      </div>
     </section>
 
     <!-- ========================
