@@ -2170,3 +2170,5 @@ dialog select {
   .planner-day, .planner-day-empty { min-height: 43px; }
   .planner-day-number { width: 26px; height: 26px; font-size: 13px; }
 }
+
+.planner-event-actions .save-button { margin-top: 0; }
