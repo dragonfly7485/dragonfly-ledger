@@ -1810,6 +1810,12 @@ function formatPlannerDate(dateString) {
   return `${year} 年 ${month} 月 ${day} 日（${weekday}）`;
 }
 
+let plannerEditingIndex = null;
+
+function getPlannerEventLines(date = plannerSelectedDate) {
+  return (plannerEvents[date] || "").split(/\\r?\\n/).map((item) => item.trim()).filter(Boolean);
+}
+
 function renderPlannerCalendar() {
   const label = $("#plannerMonthLabel");
   const grid = $("#plannerCalendarGrid");
@@ -1827,26 +1833,20 @@ function renderPlannerCalendar() {
   }
   for (let day = 1; day <= daysInMonth; day += 1) {
     const dateString = `${plannerMonth}-${String(day).padStart(2, "0")}`;
-    const hasEvents = typeof plannerEvents[dateString] === "string" && plannerEvents[dateString].trim().length > 0;
+    const hasEvents = getPlannerEventLines(dateString).length > 0;
     const isSelected = dateString === plannerSelectedDate;
     const isToday = dateString === today;
-    cells += `<button class="planner-day${isSelected ? " selected" : ""}${isToday ? " today" : ""}${hasEvents ? " has-events" : ""}" type="button" data-planner-date="${dateString}" aria-label="${formatPlannerDate(dateString)}${hasEvents ? "，有行程" : ""}" aria-pressed="${isSelected ? "true" : "false"}"><span class="planner-day-number">${day}</span>${hasEvents ? '<span class="planner-day-dot" aria-hidden="true"></span>' : '<span class="planner-day-dot planner-day-dot-empty" aria-hidden="true"></span>'}</button>`;
+    cells += `<button class="planner-day${isSelected ? " selected" : ""}${isToday ? " today" : ""}${hasEvents ? " has-events" : ""}" type="button" data-planner-date="${dateString}" aria-label="${formatPlannerDate(dateString)}${hasEvents ? "，有行程" : ""}" aria-pressed="${isSelected ? "true" : "false"}"><span class="planner-day-number">${day}</span>${hasEvents ? '<span class="planner-day-dot" aria-hidden="true"></span>' : ""}</button>`;
   }
   grid.innerHTML = cells;
-
   $("#plannerSelectedDate").textContent = formatPlannerDate(plannerSelectedDate);
-  $("#plannerEventText").value = plannerEvents[plannerSelectedDate] || "";
-  $("#plannerSaveStatus").textContent = "";
   renderPlannerEventList();
 }
 
 function renderPlannerEventList() {
   const list = $("#plannerEventList");
   if (!list) return;
-  const events = (plannerEvents[plannerSelectedDate] || "")
-    .split(/\r?\n/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const events = getPlannerEventLines();
   list.replaceChildren();
 
   if (!events.length) {
@@ -1859,29 +1859,56 @@ function renderPlannerEventList() {
 
   const items = document.createElement("ul");
   items.className = "planner-event-items";
-  events.forEach((eventText) => {
+  events.forEach((eventText, index) => {
     const item = document.createElement("li");
     const marker = document.createElement("span");
     marker.className = "planner-event-marker";
     marker.setAttribute("aria-hidden", "true");
-    const text = document.createElement("span");
-    text.className = "planner-event-item-text";
-    text.textContent = eventText;
-    item.append(marker, text);
+    const textButton = document.createElement("button");
+    textButton.type = "button";
+    textButton.className = "planner-event-item-text";
+    textButton.textContent = eventText;
+    textButton.setAttribute("aria-label", `編輯行程：${eventText}`);
+    textButton.addEventListener("click", () => openPlannerEventDialog(index));
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "planner-event-delete";
+    deleteButton.textContent = "×";
+    deleteButton.setAttribute("aria-label", `刪除行程：${eventText}`);
+    deleteButton.addEventListener("click", () => {
+      const next = getPlannerEventLines();
+      next.splice(index, 1);
+      if (next.length) plannerEvents[plannerSelectedDate] = next.join("\\n");
+      else delete plannerEvents[plannerSelectedDate];
+      if (!savePlannerEvents()) return;
+      renderPlannerCalendar();
+    });
+    item.append(marker, textButton, deleteButton);
     items.append(item);
   });
   list.append(items);
 }
 
-function initializePlannerCalendar() {
-  const editor = $(".planner-event-card");
+function openPlannerEventDialog(editIndex = null) {
+  const dialog = $("#plannerEventDialog");
+  const input = $("#plannerEventInput");
+  if (!dialog || !input) return;
+  plannerEditingIndex = editIndex;
+  const events = getPlannerEventLines();
+  $("#plannerEventDialogTitle").textContent = editIndex === null ? "新增行程" : "編輯行程";
+  $("#plannerEventDialogDate").textContent = formatPlannerDate(plannerSelectedDate);
+  $("#plannerEventDialogError").textContent = "";
+  input.value = editIndex === null ? "" : (events[editIndex] || "");
+  if (!dialog.open) dialog.showModal();
+  input.focus({ preventScroll: true });
+}
 
+function initializePlannerCalendar() {
   $("#plannerPrevMonth")?.addEventListener("click", () => {
     const [year, month] = plannerMonth.split("-").map(Number);
     const date = new Date(year, month - 2, 1);
     plannerMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     plannerSelectedDate = `${plannerMonth}-01`;
-    if (editor) editor.hidden = true;
     renderPlannerCalendar();
   });
 
@@ -1890,7 +1917,6 @@ function initializePlannerCalendar() {
     const date = new Date(year, month, 1);
     plannerMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     plannerSelectedDate = `${plannerMonth}-01`;
-    if (editor) editor.hidden = true;
     renderPlannerCalendar();
   });
 
@@ -1898,42 +1924,30 @@ function initializePlannerCalendar() {
     const dayButton = event.target.closest("[data-planner-date]");
     if (!dayButton) return;
     plannerSelectedDate = dayButton.dataset.plannerDate;
-    if (editor) editor.hidden = true;
     renderPlannerCalendar();
   });
 
-  $("#plannerAddEvent")?.addEventListener("click", () => {
-    if (!editor) return;
-    $("#plannerEventText").value = plannerEvents[plannerSelectedDate] || "";
-    $("#plannerEditorTitle").textContent = plannerEvents[plannerSelectedDate] ? "編輯行程" : "新增行程";
-    $("#plannerSaveStatus").textContent = "";
-    editor.hidden = false;
-    $("#plannerEventText").focus({ preventScroll: true });
-  });
+  $("#plannerAddEvent")?.addEventListener("click", () => openPlannerEventDialog());
+  $("#closePlannerEventDialog")?.addEventListener("click", () => $("#plannerEventDialog")?.close());
+  $("#cancelPlannerEventDialog")?.addEventListener("click", () => $("#plannerEventDialog")?.close());
+  $("#plannerEventForm")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = $("#plannerEventInput");
+    const value = input.value.trim();
+    if (!value) {
+      $("#plannerEventDialogError").textContent = "請輸入行程內容。";
+      input.focus({ preventScroll: true });
+      return;
+    }
+    const events = getPlannerEventLines();
+    if (plannerEditingIndex === null) events.push(value);
+    else if (plannerEditingIndex >= 0 && plannerEditingIndex < events.length) events[plannerEditingIndex] = value;
+    else events.push(value);
 
-  $("#plannerSaveEvents")?.addEventListener("click", () => {
-    const text = $("#plannerEventText").value
-      .split(/\r?\n/)
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .join("\n");
-    if (text) plannerEvents[plannerSelectedDate] = text;
-    else delete plannerEvents[plannerSelectedDate];
-
+    plannerEvents[plannerSelectedDate] = events.join("\\n");
     if (!savePlannerEvents()) return;
-    if (editor) editor.hidden = true;
+    $("#plannerEventDialog").close();
     renderPlannerCalendar();
-    $("#plannerSaveStatus").textContent = text ? "行程已儲存 ✓" : "當日行程已清除 ✓";
-  });
-
-  $("#plannerCancelEdit")?.addEventListener("click", () => {
-    if (editor) editor.hidden = true;
-    renderPlannerCalendar();
-  });
-
-  $("#plannerClearEvents")?.addEventListener("click", () => {
-    $("#plannerEventText").value = "";
-    $("#plannerSaveStatus").textContent = "內容已清空，按「儲存行程」後才會套用。";
   });
 }
 
