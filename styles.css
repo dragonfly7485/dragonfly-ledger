@@ -2226,3 +2226,116 @@ dialog select {
   .planner-section-heading { gap: 8px; }
   .planner-add-event-top-button { min-height: 38px; padding: 8px 9px; font-size: 12px; }
 }
+
+
+/* 行事曆精修：縮小新增按鈕、日期底部標記與整齊行程列 */
+.planner-add-event-top-button {
+  min-height: 34px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 750;
+}
+.planner-day {
+  gap: 0;
+  padding-top: 3px;
+  padding-bottom: 5px;
+}
+.planner-day-number {
+  flex: 0 0 28px;
+}
+.planner-day-dot {
+  position: static;
+  display: block;
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin-top: 2px;
+  transform: none;
+}
+.planner-day.selected {
+  border: 1px solid var(--green);
+  background: transparent;
+}
+.planner-day.selected .planner-day-number {
+  background: transparent;
+  color: var(--text);
+}
+.planner-event-list-card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+.planner-event-heading {
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.planner-event-heading h3 { font-size: 18px; }
+.planner-event-label {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.planner-event-items { gap: 8px; }
+.planner-event-items li {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-soft);
+}
+.planner-event-marker {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  margin: 0;
+}
+.planner-event-item-text {
+  display: block;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  height: 36px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 36px;
+  cursor: pointer;
+}
+.planner-event-delete {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--muted);
+  line-height: 1;
+}
+.planner-event-empty {
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 13px;
+  text-align: left;
+}
+@media (max-width: 390px) {
+  .planner-add-event-top-button { min-height: 32px; padding: 5px 8px; font-size: 10px; }
+  .planner-event-list-card { padding: 15px; }
+}
