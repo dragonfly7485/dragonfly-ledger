@@ -1444,22 +1444,17 @@ function showBudgetFeedback(record) {
    備份與還原
    ========================= */
 
-function exportBackup() {
-  const backup = {
-    app: "DragonflyLedger",
-    version: 2,
-    exportedAt: new Date().toISOString(),
-    records,
-    budgets
-  };
+function exportBackup(scope = "ledger") {
+  const backup = { app: "DragonflyLedger", version: 3, scope, exportedAt: new Date().toISOString() };
+  if (scope === "ledger" || scope === "all") { backup.records = records; backup.budgets = budgets; }
+  if (scope === "calendar" || scope === "all") { backup.calendarEvents = plannerEvents; backup.calendarCompleted = plannerCompleted; }
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "蜻蜓牌記帳本備份-" + localDate() + ".json";
-  document.body.append(link);
-  link.click();
-  link.remove();
+  const suffix = scope === "calendar" ? "行事曆" : scope === "all" ? "完整" : "記帳";
+  link.download = "蜻蜓牌記帳本-" + suffix + "備份-" + localDate() + ".json";
+  document.body.append(link); link.click(); link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -1483,187 +1478,111 @@ function importBackup(file) {
   reader.onload = () => {
     try {
       const backup = JSON.parse(reader.result);
-      if (backup && !Array.isArray(backup) &&
-          backup.app !== undefined && backup.app !== "DragonflyLedger") {
-        throw new Error("這不是蜻蜓牌記帳本的備份檔");
-      }
-
-      const imported = Array.isArray(backup) ? backup : backup?.records;
-      if (!Array.isArray(imported)) throw new Error("備份格式不正確，找不到記帳紀錄");
-
-      const validRecords = imported.every((record) =>
-        record &&
-        typeof record.id === "string" &&
-        ["income", "expense"].includes(record.type) &&
-        Number.isFinite(Number(record.amount)) &&
-        Number(record.amount) > 0 &&
-        typeof record.date === "string" &&
-        /^\d{4}-\d{2}-\d{2}$/.test(record.date) &&
-        categories[record.type].includes(record.category) &&
-        (record.payment === undefined || typeof record.payment === "string") &&
-        (record.note === undefined || typeof record.note === "string")
-      );
-      if (!validRecords) throw new Error("備份內含有不正確的紀錄，原資料未更動");
-
-      const includesBudgets = !Array.isArray(backup) &&
-        Object.prototype.hasOwnProperty.call(backup, "budgets");
-      if (includesBudgets && !isValidBackupBudgets(backup.budgets)) {
-        throw new Error("備份內的預算資料格式不正確，原資料未更動");
-      }
-
-      const importedRecords = imported.map((record) => ({
-        id: record.id,
-        type: record.type,
-        amount: Math.round(Number(record.amount) * 100) / 100,
-        date: record.date,
-        category: record.category,
-        payment: paymentMethods.includes(record.payment) ? record.payment : "其他",
-        note: typeof record.note === "string" ? record.note : "",
-        createdAt: Number(record.createdAt) || 0
-      }));
-      const importedBudgets = includesBudgets ? backup.budgets : budgets;
-      const budgetMessage = includesBudgets
-        ? "記帳紀錄與預算都會被這份備份取代。"
-        : "這是沒有預算資料的舊版備份，匯入後會保留目前裝置上的預算。";
-      const confirmed = window.confirm(
-        "即將匯入 " + importedRecords.length + " 筆記帳紀錄。\n" +
-        budgetMessage + "\n\n為避免資料遺失，建議先匯出目前資料。確定繼續嗎？"
-      );
-      if (!confirmed) return;
-
-      // 先保存原始儲存值；若任一項寫入失敗，就回復兩項原始值。
-      const previousRecordsRaw = localStorage.getItem(STORAGE_KEY);
-      const previousBudgetsRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
-      const previousRecords = records;
-      const previousBudgets = budgets;
+      if (backup && !Array.isArray(backup) && backup.app !== undefined && backup.app !== "DragonflyLedger") throw new Error("這不是蜻蜓牌記帳本的備份檔");
+      const legacyArray = Array.isArray(backup);
+      const hasRecords = legacyArray || Object.prototype.hasOwnProperty.call(backup || {}, "records");
+      const hasBudgets = !legacyArray && Object.prototype.hasOwnProperty.call(backup || {}, "budgets");
+      const hasCalendarEvents = !legacyArray && Object.prototype.hasOwnProperty.call(backup || {}, "calendarEvents");
+      const hasCalendarCompleted = !legacyArray && Object.prototype.hasOwnProperty.call(backup || {}, "calendarCompleted");
+      const hasCalendar = hasCalendarEvents || hasCalendarCompleted;
+      if (!hasRecords && !hasCalendar) throw new Error("備份格式不正確，找不到可還原的資料");
+      const imported = legacyArray ? backup : backup.records;
+      if (hasRecords && !Array.isArray(imported)) throw new Error("備份格式不正確，記帳紀錄不是有效清單");
+      if (hasRecords && !imported.every(record => record && typeof record.id === "string" && ["income","expense"].includes(record.type) && Number.isFinite(Number(record.amount)) && Number(record.amount)>0 && typeof record.date==="string" && /^\d{4}-\d{2}-\d{2}$/.test(record.date) && categories[record.type].includes(record.category) && (record.payment===undefined || typeof record.payment==="string") && (record.note===undefined || typeof record.note==="string"))) throw new Error("備份內含有不正確的紀錄，原資料未更動");
+      if (hasBudgets && !isValidBackupBudgets(backup.budgets)) throw new Error("備份內的預算資料格式不正確，原資料未更動");
+      if (hasCalendarEvents && (!backup.calendarEvents || typeof backup.calendarEvents!=="object" || Array.isArray(backup.calendarEvents) || !Object.values(backup.calendarEvents).every(v=>typeof v==="string"))) throw new Error("備份內的行事曆資料格式不正確，原資料未更動");
+      if (hasCalendarCompleted && (!backup.calendarCompleted || typeof backup.calendarCompleted!=="object" || Array.isArray(backup.calendarCompleted) || !Object.values(backup.calendarCompleted).every(v=>Array.isArray(v)&&v.every(x=>typeof x==="boolean")))) throw new Error("備份內的行程完成狀態格式不正確，原資料未更動");
+      const importedRecords = hasRecords ? imported.map(record=>({id:record.id,type:record.type,amount:Math.round(Number(record.amount)*100)/100,date:record.date,category:record.category,payment:paymentMethods.includes(record.payment)?record.payment:"其他",note:typeof record.note==="string"?record.note:"",createdAt:Number(record.createdAt)||0})) : records;
+      const importedBudgets = hasBudgets ? backup.budgets : budgets;
+      const importedEvents = hasCalendarEvents ? backup.calendarEvents : plannerEvents;
+      const importedCompleted = hasCalendarCompleted ? backup.calendarCompleted : plannerCompleted;
+      const parts=[]; if(hasRecords) parts.push("記帳紀錄"); if(hasBudgets) parts.push("預算設定"); if(hasCalendar) parts.push("行事曆內容");
+      if (!window.confirm("即將還原以下資料："+parts.join("、")+"。\n"+(hasRecords?"記帳紀錄共 "+importedRecords.length+" 筆。\n":"")+"備份未包含的資料會保留目前裝置上的內容。\n\n確定繼續嗎？")) return;
+      const keys=[STORAGE_KEY,BUDGET_STORAGE_KEY,PLANNER_EVENTS_STORAGE_KEY,PLANNER_COMPLETED_STORAGE_KEY];
+      const previousRaw=Object.fromEntries(keys.map(key=>[key,localStorage.getItem(key)]));
+      const oldRecords=records, oldBudgets=budgets, oldEvents=plannerEvents, oldCompleted=plannerCompleted;
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(importedRecords));
-        localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(importedBudgets));
-      } catch (storageError) {
-        try {
-          if (previousRecordsRaw === null) localStorage.removeItem(STORAGE_KEY);
-          else localStorage.setItem(STORAGE_KEY, previousRecordsRaw);
-          if (previousBudgetsRaw === null) localStorage.removeItem(BUDGET_STORAGE_KEY);
-          else localStorage.setItem(BUDGET_STORAGE_KEY, previousBudgetsRaw);
-        } catch (rollbackError) {
-          console.error("還原原始儲存資料時發生錯誤：", rollbackError);
-        }
-        records = previousRecords;
-        budgets = previousBudgets;
+        if(hasRecords) localStorage.setItem(STORAGE_KEY,JSON.stringify(importedRecords));
+        if(hasBudgets) localStorage.setItem(BUDGET_STORAGE_KEY,JSON.stringify(importedBudgets));
+        if(hasCalendarEvents) localStorage.setItem(PLANNER_EVENTS_STORAGE_KEY,JSON.stringify(importedEvents));
+        if(hasCalendarCompleted) localStorage.setItem(PLANNER_COMPLETED_STORAGE_KEY,JSON.stringify(importedCompleted));
+      } catch(storageError) {
+        try { for(const key of keys) { if(previousRaw[key]===null) localStorage.removeItem(key); else localStorage.setItem(key,previousRaw[key]); } } catch(rollbackError) { console.error("還原原始儲存資料時發生錯誤：",rollbackError); }
+        records=oldRecords; budgets=oldBudgets; plannerEvents=oldEvents; plannerCompleted=oldCompleted;
         throw new Error("裝置儲存失敗，已嘗試還原匯入前的資料。請確認儲存空間後再試。");
       }
-
-      records = importedRecords;
-      budgets = importedBudgets;
-      render();
-      alert(includesBudgets
-        ? "備份匯入成功！記帳紀錄與預算已還原。"
-        : "舊版備份匯入成功！記帳紀錄已還原，原有預算已保留。");
-    } catch (error) {
-      alert("匯入失敗：" + (error.message || "檔案無法讀取"));
-    } finally {
-      const importInput = $("#importFile");
-      if (importInput) importInput.value = "";
-    }
+      if(hasRecords) records=importedRecords; if(hasBudgets) budgets=importedBudgets;
+      if(hasCalendarEvents) plannerEvents=importedEvents; if(hasCalendarCompleted) plannerCompleted=importedCompleted;
+      render(); renderBudget(); renderPlannerCalendar();
+      alert("備份匯入成功！已還原："+parts.join("、")+"。");
+    } catch(error) { alert("匯入失敗："+(error.message||"檔案無法讀取")); }
+    finally { const input=$("#importFile"); if(input) input.value=""; }
   };
-  reader.onerror = () => {
-    alert("無法讀取這個備份檔，原資料未更動。");
-    const importInput = $("#importFile");
-    if (importInput) importInput.value = "";
-  };
+  reader.onerror=()=>{ alert("無法讀取這個備份檔，原資料未更動。"); const input=$("#importFile"); if(input) input.value=""; };
   reader.readAsText(file);
 }
 
 let resetCountdownTimer = null;
 let resetCountdownRemaining = 5;
+let pendingDataAction = "export";
+let pendingResetScope = "ledger";
 
-function stopResetCountdown() {
-  if (resetCountdownTimer !== null) {
-    clearInterval(resetCountdownTimer);
-    resetCountdownTimer = null;
-  }
-  resetCountdownRemaining = 5;
-  const button = $("#confirmResetBtn");
-  if (button) {
-    button.disabled = true;
-    button.textContent = "請等待 5 秒";
-  }
+function selectedDataScope() { return document.querySelector('input[name="dataActionScope"]:checked')?.value || "ledger"; }
+function openDataAction(mode) {
+  pendingDataAction=mode;
+  const dialog=$("#dataActionDialog"), title=$("#dataActionTitle"), description=$("#dataActionDescription"), proceed=$("#continueDataAction");
+  if(!dialog||!title||!description||!proceed){alert("資料選擇視窗未載入，請重新整理後再試。");return;}
+  title.textContent=mode==="export"?"選擇要匯出的資料":"選擇要重置的資料";
+  description.textContent=mode==="export"?"選擇備份範圍，未選取的資料不會放進備份檔。":"選擇要清除的資料；其他類型的資料會保留。接著仍需等待 5 秒確認。";
+  proceed.textContent=mode==="export"?"匯出備份":"下一步";
+  const radio=document.querySelector('input[name="dataActionScope"][value="ledger"]'); if(radio) radio.checked=true;
+  if(!dialog.open) dialog.showModal();
 }
-
-function startResetCountdown() {
-  stopResetCountdown();
-  const button = $("#confirmResetBtn");
-  const message = $("#resetCountdownMessage");
-  if (!button) return;
-  button.disabled = true;
-  button.textContent = "請等待 5 秒";
-  if (message) message.textContent = "為避免誤觸，請等待 5 秒後再確認重置。";
-  resetCountdownTimer = setInterval(() => {
-    resetCountdownRemaining -= 1;
-    if (resetCountdownRemaining > 0) {
-      button.textContent = `請等待 ${resetCountdownRemaining} 秒`;
-      if (message) message.textContent = `還需要等待 ${resetCountdownRemaining} 秒，才能執行重置。`;
-      return;
-    }
-    clearInterval(resetCountdownTimer);
-    resetCountdownTimer = null;
-    button.disabled = false;
-    button.textContent = "永久重置";
-    if (message) message.textContent = "已可確認重置。這項操作無法直接復原，請再次確認。";
-  }, 1000);
+function closeDataAction(){ $("#dataActionDialog")?.close(); }
+function continueDataAction(){
+  const scope=selectedDataScope(); closeDataAction();
+  if(pendingDataAction==="export"){exportBackup(scope);return;}
+  pendingResetScope=scope;
+  const dialog=$("#resetDialog"), title=$("#resetDialogTitle"), copy=dialog?.querySelector(".reset-dialog-copy");
+  const labels={
+    ledger:["重置記帳資料與預算？","將清除所有記帳紀錄與各月份預算，行事曆內容會保留。"],
+    calendar:["重置行事曆內容？","將清除每日行程及完成狀態，記帳紀錄與預算會保留。"],
+    all:["重置這台裝置的全部資料？","將清除記帳紀錄、預算、行事曆行程及完成狀態。"]
+  };
+  if(title) title.textContent=labels[scope][0]; if(copy) copy.textContent=labels[scope][1];
+  try { if(dialog&&!dialog.open) dialog.showModal(); startResetCountdown(); }
+  catch(error){console.error("無法開啟重置確認視窗：",error);alert("無法開啟重置確認視窗，資料沒有變更。請重新整理後再試。");}
 }
-
-function resetAllData() {
-  const dialog = $("#resetDialog");
-  const confirmButton = $("#confirmResetBtn");
-  if (!dialog || !confirmButton) {
-    alert("重置確認視窗未載入，資料沒有變更。請重新整理後再試。");
-    return;
-  }
-  try {
-    if (!dialog.open) dialog.showModal();
-    startResetCountdown();
-  } catch (error) {
-    console.error("無法開啟重置確認視窗：", error);
-    alert("無法開啟重置確認視窗，資料沒有變更。請重新整理後再試。");
-  }
+function stopResetCountdown(){
+  if(resetCountdownTimer!==null){clearInterval(resetCountdownTimer);resetCountdownTimer=null;}
+  resetCountdownRemaining=5; const button=$("#confirmResetBtn");
+  if(button){button.disabled=true;button.textContent="請等待 5 秒";}
 }
-
-function executeResetAllData() {
-  const dialog = $("#resetDialog");
-  const confirmButton = $("#confirmResetBtn");
-  if (!confirmButton || confirmButton.disabled || resetCountdownTimer !== null) return;
-
-  const previousRecordsRaw = localStorage.getItem(STORAGE_KEY);
-  const previousBudgetsRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
-  const previousRecords = records;
-  const previousBudgets = budgets;
-  try {
-    localStorage.setItem(STORAGE_KEY, "[]");
-    localStorage.setItem(BUDGET_STORAGE_KEY, "{}");
-  } catch (error) {
-    try {
-      if (previousRecordsRaw === null) localStorage.removeItem(STORAGE_KEY);
-      else localStorage.setItem(STORAGE_KEY, previousRecordsRaw);
-      if (previousBudgetsRaw === null) localStorage.removeItem(BUDGET_STORAGE_KEY);
-      else localStorage.setItem(BUDGET_STORAGE_KEY, previousBudgetsRaw);
-    } catch (rollbackError) {
-      console.error("重置失敗後還原原始資料時發生錯誤：", rollbackError);
-    }
-    records = previousRecords;
-    budgets = previousBudgets;
-    stopResetCountdown();
-    dialog?.close();
-    alert("重置失敗，已嘗試保留原有資料。請確認裝置儲存空間。");
-    return;
+function startResetCountdown(){
+  stopResetCountdown(); const button=$("#confirmResetBtn"), message=$("#resetCountdownMessage"); if(!button)return;
+  button.disabled=true;button.textContent="請等待 5 秒";if(message)message.textContent="為避免誤觸，請等待 5 秒後再確認重置。";
+  resetCountdownTimer=setInterval(()=>{
+    resetCountdownRemaining--;
+    if(resetCountdownRemaining>0){button.textContent=`請等待 ${resetCountdownRemaining} 秒`;if(message)message.textContent=`還需要等待 ${resetCountdownRemaining} 秒，才能執行重置。`;return;}
+    clearInterval(resetCountdownTimer);resetCountdownTimer=null;button.disabled=false;button.textContent="永久重置";if(message)message.textContent="已可確認重置。這項操作無法直接復原，請再次確認。";
+  },1000);
+}
+function resetAllData(){openDataAction("reset");}
+function executeResetAllData(){
+  const dialog=$("#resetDialog"), button=$("#confirmResetBtn");if(!button||button.disabled||resetCountdownTimer!==null)return;
+  const byScope={ledger:[STORAGE_KEY,BUDGET_STORAGE_KEY],calendar:[PLANNER_EVENTS_STORAGE_KEY,PLANNER_COMPLETED_STORAGE_KEY],all:[STORAGE_KEY,BUDGET_STORAGE_KEY,PLANNER_EVENTS_STORAGE_KEY,PLANNER_COMPLETED_STORAGE_KEY]};
+  const keys=byScope[pendingResetScope]||byScope.ledger, previousRaw=Object.fromEntries(keys.map(key=>[key,localStorage.getItem(key)]));
+  const oldRecords=records,oldBudgets=budgets,oldEvents=plannerEvents,oldCompleted=plannerCompleted;
+  try{for(const key of keys)localStorage.setItem(key,key===STORAGE_KEY?"[]":"{}");}
+  catch(error){
+    try{for(const key of keys){if(previousRaw[key]===null)localStorage.removeItem(key);else localStorage.setItem(key,previousRaw[key]);}}catch(rollbackError){console.error("重置失敗後還原原始資料時發生錯誤：",rollbackError);}
+    records=oldRecords;budgets=oldBudgets;plannerEvents=oldEvents;plannerCompleted=oldCompleted;stopResetCountdown();dialog?.close();alert("重置失敗，已嘗試保留原有資料。請確認裝置儲存空間。");return;
   }
-  records = [];
-  budgets = {};
-  stopResetCountdown();
-  dialog?.close();
-  render();
-  renderBudget();
-  alert("已重置所有記帳紀錄與預算。外觀主題等設定不受影響。");
+  if(keys.includes(STORAGE_KEY))records=[];if(keys.includes(BUDGET_STORAGE_KEY))budgets={};
+  if(keys.includes(PLANNER_EVENTS_STORAGE_KEY))plannerEvents={};if(keys.includes(PLANNER_COMPLETED_STORAGE_KEY))plannerCompleted={};
+  stopResetCountdown();dialog?.close();render();renderBudget();renderPlannerCalendar();
+  const message=pendingResetScope==="ledger"?"已重置記帳資料與預算，行事曆內容已保留。":pendingResetScope==="calendar"?"已重置行事曆內容，記帳資料與預算已保留。":"已重置所有記帳資料、預算與行事曆內容。";
+  alert(message+" 外觀主題等設定不受影響。");
 }
 
 /* =========================
@@ -2187,8 +2106,12 @@ function initialize() {
   });
 
   // 設定頁的備份／還原功能。
-  $("#exportBtn")?.addEventListener("click", exportBackup);
+  $("#exportBtn")?.addEventListener("click", () => openDataAction("export"));
   $("#importBtn")?.addEventListener("click", () => $("#importFile")?.click());
+  $("#closeDataAction")?.addEventListener("click", closeDataAction);
+  $("#cancelDataAction")?.addEventListener("click", closeDataAction);
+  $("#continueDataAction")?.addEventListener("click", continueDataAction);
+  $("#dataActionDialog")?.addEventListener("click", event => { if(event.target===event.currentTarget) closeDataAction(); });
   $("#importFile")?.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
     if (file) importBackup(file);
