@@ -639,6 +639,18 @@
     </div>
   </dialog>
 
+
+  <dialog id="plannerDeleteDialog" class="delete-dialog" aria-labelledby="plannerDeleteDialogTitle">
+    <div class="delete-dialog-icon" aria-hidden="true">🗑️</div>
+    <h2 id="plannerDeleteDialogTitle">刪除這個行程？</h2>
+    <p class="delete-dialog-message">刪除後無法直接復原，請確認是否繼續。</p>
+    <p id="plannerDeleteEventSummary" class="delete-record-summary"></p>
+    <div class="delete-dialog-actions">
+      <button id="cancelPlannerDelete" class="delete-cancel-button" type="button">取消</button>
+      <button id="confirmPlannerDelete" class="delete-confirm-button" type="button">確認刪除</button>
+    </div>
+  </dialog>
+
   <dialog id="deleteDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
     <div class="delete-dialog-icon" aria-hidden="true">🗑️</div>
     <h2 id="deleteDialogTitle">刪除這筆紀錄？</h2>
@@ -810,7 +822,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261022-14" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261022-15" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
