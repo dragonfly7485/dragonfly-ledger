@@ -655,6 +655,60 @@ function initializeMenu() {
     }
   });
 
+  // 手勢操作：從螢幕左側向右滑開啟選單，選單開啟時向左滑關閉。
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let swipeTracking = false;
+  const swipeEdgeWidth = 28;
+  const swipeThreshold = 75;
+
+  document.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1) {
+      swipeTracking = false;
+      return;
+    }
+
+    // 有其他對話視窗開啟時，不攔截使用者的滑動操作。
+    if (document.querySelector("dialog[open]")) {
+      swipeTracking = false;
+      return;
+    }
+
+    const touch = event.touches[0];
+    const menuIsOpen = sideMenu.classList.contains("open");
+    const startInsideMenu = sideMenu.contains(event.target);
+
+    if ((!menuIsOpen && touch.clientX > swipeEdgeWidth) ||
+        (menuIsOpen && !startInsideMenu && touch.clientX > sideMenu.getBoundingClientRect().right + 16)) {
+      swipeTracking = false;
+      return;
+    }
+
+    swipeStartX = touch.clientX;
+    swipeStartY = touch.clientY;
+    swipeTracking = true;
+  }, { passive: true });
+
+  document.addEventListener("touchend", (event) => {
+    if (!swipeTracking || event.changedTouches.length !== 1) return;
+    swipeTracking = false;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - swipeStartX;
+    const deltaY = touch.clientY - swipeStartY;
+    if (Math.abs(deltaX) < swipeThreshold || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
+
+    if (deltaX > 0 && !sideMenu.classList.contains("open")) {
+      openMenu();
+    } else if (deltaX < 0 && sideMenu.classList.contains("open")) {
+      closeMenu();
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchcancel", () => {
+    swipeTracking = false;
+  }, { passive: true });
+
   closeButton?.addEventListener("click", () => closeMenu(true));
   overlay.addEventListener("click", () => closeMenu(true));
 
