@@ -1837,14 +1837,51 @@ function renderPlannerCalendar() {
   $("#plannerSelectedDate").textContent = formatPlannerDate(plannerSelectedDate);
   $("#plannerEventText").value = plannerEvents[plannerSelectedDate] || "";
   $("#plannerSaveStatus").textContent = "";
+  renderPlannerEventList();
+}
+
+function renderPlannerEventList() {
+  const list = $("#plannerEventList");
+  if (!list) return;
+  const events = (plannerEvents[plannerSelectedDate] || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  list.replaceChildren();
+
+  if (!events.length) {
+    const empty = document.createElement("p");
+    empty.className = "planner-event-empty";
+    empty.textContent = "這天還沒有安排，點擊「新增行程」開始規劃。";
+    list.append(empty);
+    return;
+  }
+
+  const items = document.createElement("ul");
+  items.className = "planner-event-items";
+  events.forEach((eventText) => {
+    const item = document.createElement("li");
+    const marker = document.createElement("span");
+    marker.className = "planner-event-marker";
+    marker.setAttribute("aria-hidden", "true");
+    const text = document.createElement("span");
+    text.className = "planner-event-item-text";
+    text.textContent = eventText;
+    item.append(marker, text);
+    items.append(item);
+  });
+  list.append(items);
 }
 
 function initializePlannerCalendar() {
+  const editor = $(".planner-event-card");
+
   $("#plannerPrevMonth")?.addEventListener("click", () => {
     const [year, month] = plannerMonth.split("-").map(Number);
     const date = new Date(year, month - 2, 1);
     plannerMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     plannerSelectedDate = `${plannerMonth}-01`;
+    if (editor) editor.hidden = true;
     renderPlannerCalendar();
   });
 
@@ -1853,6 +1890,7 @@ function initializePlannerCalendar() {
     const date = new Date(year, month, 1);
     plannerMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     plannerSelectedDate = `${plannerMonth}-01`;
+    if (editor) editor.hidden = true;
     renderPlannerCalendar();
   });
 
@@ -1860,17 +1898,37 @@ function initializePlannerCalendar() {
     const dayButton = event.target.closest("[data-planner-date]");
     if (!dayButton) return;
     plannerSelectedDate = dayButton.dataset.plannerDate;
+    if (editor) editor.hidden = true;
     renderPlannerCalendar();
   });
 
+  $("#plannerAddEvent")?.addEventListener("click", () => {
+    if (!editor) return;
+    $("#plannerEventText").value = plannerEvents[plannerSelectedDate] || "";
+    $("#plannerEditorTitle").textContent = plannerEvents[plannerSelectedDate] ? "編輯行程" : "新增行程";
+    $("#plannerSaveStatus").textContent = "";
+    editor.hidden = false;
+    $("#plannerEventText").focus({ preventScroll: true });
+  });
+
   $("#plannerSaveEvents")?.addEventListener("click", () => {
-    const text = $("#plannerEventText").value.trim();
+    const text = $("#plannerEventText").value
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join("\n");
     if (text) plannerEvents[plannerSelectedDate] = text;
     else delete plannerEvents[plannerSelectedDate];
 
     if (!savePlannerEvents()) return;
+    if (editor) editor.hidden = true;
     renderPlannerCalendar();
     $("#plannerSaveStatus").textContent = text ? "行程已儲存 ✓" : "當日行程已清除 ✓";
+  });
+
+  $("#plannerCancelEdit")?.addEventListener("click", () => {
+    if (editor) editor.hidden = true;
+    renderPlannerCalendar();
   });
 
   $("#plannerClearEvents")?.addEventListener("click", () => {
