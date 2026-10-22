@@ -464,7 +464,7 @@
             <strong>應用程式</strong>
             <p>蜻蜓牌記帳本</p>
           </div>
-          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.3</button>
+          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.2.1</button>
         </div>
 
         <div class="settings-row">
@@ -544,11 +544,10 @@
     <div class="reset-dialog-icon" aria-hidden="true">!</div>
     <h2 id="resetDialogTitle">重置這台裝置的資料？</h2>
     <p class="reset-dialog-copy">這會清除所有記帳紀錄與各月份預算，無法直接復原。外觀主題不會改變。</p>
-    <label class="reset-confirm-label" for="resetConfirmInput">輸入 <strong>RESET</strong> 以確認</label>
-    <input id="resetConfirmInput" class="reset-confirm-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="輸入 RESET">
+    <p id="resetCountdownMessage" class="reset-dialog-copy">為避免誤觸，請等待 5 秒後再確認重置。</p>
     <div class="reset-dialog-actions">
       <button id="cancelResetBtn" class="cancel-button" type="button">取消</button>
-      <button id="confirmResetBtn" class="reset-button" type="button" disabled>永久重置</button>
+      <button id="confirmResetBtn" class="reset-button" type="button" disabled>請等待 5 秒</button>
     </div>
   </dialog>
 
@@ -570,11 +569,12 @@
       <button id="closeChangelog" class="close-button" type="button" aria-label="關閉更新紀錄">×</button>
     </div>
     <div class="changelog-entry">
-      <h3>v2.3 <span>目前版本</span></h3>
+      <h3>v2.2.1 <span>目前版本</span></h3>
       <ul>
-        <li>更換選單中的行事曆圖示。</li>
-        <li>新增「新增行程」按鈕，行程會列在日曆下方。</li>
-        <li>可依日期查看、編輯及儲存每日行程，資料仍保存在本機。</li>
+        <li>調整行事曆選單圖示與新增行程按鈕位置。</li>
+        <li>可依日期新增、編輯及刪除行程，刪除前會再次確認。</li>
+        <li>行程可勾選完成，完成後文字會顯示刪除線，狀態會保存在本機。</li>
+        <li>調整日期選取外觀與行程清單排版。</li>
       </ul>
     </div>
     <div class="changelog-entry">
@@ -822,7 +822,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261022-16" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261022-17" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
