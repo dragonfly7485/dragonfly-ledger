@@ -1813,7 +1813,7 @@ function formatPlannerDate(dateString) {
 let plannerEditingIndex = null;
 
 function getPlannerEventLines(date = plannerSelectedDate) {
-  return (plannerEvents[date] || "").split(/\\r?\\n/).map((item) => item.trim()).filter(Boolean);
+  return (plannerEvents[date] || "").split(/(?:\r?\n|\\n)/).map((item) => item.trim()).filter(Boolean);
 }
 
 function renderPlannerCalendar() {
@@ -1878,7 +1878,7 @@ function renderPlannerEventList() {
     deleteButton.addEventListener("click", () => {
       const next = getPlannerEventLines();
       next.splice(index, 1);
-      if (next.length) plannerEvents[plannerSelectedDate] = next.join("\\n");
+      if (next.length) plannerEvents[plannerSelectedDate] = next.join("\n");
       else delete plannerEvents[plannerSelectedDate];
       if (!savePlannerEvents()) return;
       renderPlannerCalendar();
@@ -1944,7 +1944,7 @@ function initializePlannerCalendar() {
     else if (plannerEditingIndex >= 0 && plannerEditingIndex < events.length) events[plannerEditingIndex] = value;
     else events.push(value);
 
-    plannerEvents[plannerSelectedDate] = events.join("\\n");
+    plannerEvents[plannerSelectedDate] = events.join("\n");
     if (!savePlannerEvents()) return;
     $("#plannerEventDialog").close();
     renderPlannerCalendar();
