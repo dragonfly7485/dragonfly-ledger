@@ -659,7 +659,7 @@ function initializeMenu() {
   let swipeStartX = 0;
   let swipeStartY = 0;
   let swipeTracking = false;
-  const swipeEdgeWidth = 28;
+  const swipeEdgeWidth = 60;
   const swipeThreshold = 75;
 
   document.addEventListener("touchstart", (event) => {
