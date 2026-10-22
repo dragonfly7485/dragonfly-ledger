@@ -655,11 +655,10 @@ function initializeMenu() {
     }
   });
 
-  // 手勢操作：從螢幕左側向右滑開啟選單，選單開啟時向左滑關閉。
+  // 手勢操作：從螢幕任意位置向右滑開啟選單，向左滑關閉。
   let swipeStartX = 0;
   let swipeStartY = 0;
   let swipeTracking = false;
-  const swipeEdgeWidth = 60;
   const swipeThreshold = 75;
 
   document.addEventListener("touchstart", (event) => {
@@ -675,14 +674,6 @@ function initializeMenu() {
     }
 
     const touch = event.touches[0];
-    const menuIsOpen = sideMenu.classList.contains("open");
-    const startInsideMenu = sideMenu.contains(event.target);
-
-    if ((!menuIsOpen && touch.clientX > swipeEdgeWidth) ||
-        (menuIsOpen && !startInsideMenu && touch.clientX > sideMenu.getBoundingClientRect().right + 16)) {
-      swipeTracking = false;
-      return;
-    }
 
     swipeStartX = touch.clientX;
     swipeStartY = touch.clientY;
