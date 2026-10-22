@@ -4,6 +4,7 @@ const STORAGE_KEY = "dragonfly-ledger-v1";
 const BUDGET_STORAGE_KEY = "dragonfly-ledger-budgets-v1";
 const THEME_STORAGE_KEY = "dragonfly-ledger-theme-v1";
 const CARRIER_STORAGE_KEY = "dragonfly-ledger-carrier-v1";
+const PLANNER_EVENTS_STORAGE_KEY = "dragonfly-ledger-calendar-v1";
 const CARRIER_PATTERN = /^\/[A-Z0-9.+-]{7}$/;
 
 const categories = {
@@ -568,6 +569,7 @@ function initializeMenu() {
     home: $("#homeSection"),
     budget: $("#budgetSection"),
     records: $("#recordsSection"),
+    calendar: $("#calendarSection"),
     settings: $("#settingsSection")
   };
 
@@ -644,6 +646,8 @@ function initializeMenu() {
       renderBudget();
     } else if (pageName === "records") {
       renderQueryRecords();
+    } else if (pageName === "calendar") {
+      renderPlannerCalendar();
     }
   }
 
@@ -1770,6 +1774,111 @@ function initializeCalculator() {
    初始化
    ========================= */
 
+/* =========================
+   行事曆與每日行程
+   ========================= */
+function loadPlannerEvents() {
+  try {
+    const saved = localStorage.getItem(PLANNER_EVENTS_STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : {};
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    console.error("讀取行事曆失敗：", error);
+    return {};
+  }
+}
+
+let plannerEvents = loadPlannerEvents();
+let plannerMonth = localDate().slice(0, 7);
+let plannerSelectedDate = localDate();
+
+function savePlannerEvents() {
+  try {
+    localStorage.setItem(PLANNER_EVENTS_STORAGE_KEY, JSON.stringify(plannerEvents));
+    return true;
+  } catch (error) {
+    console.error("儲存行事曆失敗：", error);
+    alert("行程儲存失敗，可能是瀏覽器儲存空間不足。");
+    return false;
+  }
+}
+
+function formatPlannerDate(dateString) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const weekday = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"][date.getDay()];
+  return `${year} 年 ${month} 月 ${day} 日（${weekday}）`;
+}
+
+function renderPlannerCalendar() {
+  const label = $("#plannerMonthLabel");
+  const grid = $("#plannerCalendarGrid");
+  if (!label || !grid) return;
+
+  const [year, month] = plannerMonth.split("-").map(Number);
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const today = localDate();
+  label.textContent = `${year} 年 ${month} 月`;
+
+  let cells = "";
+  for (let i = 0; i < firstWeekday; i += 1) {
+    cells += '<span class="planner-day-empty" aria-hidden="true"></span>';
+  }
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateString = `${plannerMonth}-${String(day).padStart(2, "0")}`;
+    const hasEvents = typeof plannerEvents[dateString] === "string" && plannerEvents[dateString].trim().length > 0;
+    const isSelected = dateString === plannerSelectedDate;
+    const isToday = dateString === today;
+    cells += `<button class="planner-day${isSelected ? " selected" : ""}${isToday ? " today" : ""}${hasEvents ? " has-events" : ""}" type="button" data-planner-date="${dateString}" aria-label="${formatPlannerDate(dateString)}${hasEvents ? "，有行程" : ""}" aria-pressed="${isSelected ? "true" : "false"}"><span class="planner-day-number">${day}</span>${hasEvents ? '<span class="planner-day-dot" aria-hidden="true"></span>' : '<span class="planner-day-dot planner-day-dot-empty" aria-hidden="true"></span>'}</button>`;
+  }
+  grid.innerHTML = cells;
+
+  $("#plannerSelectedDate").textContent = formatPlannerDate(plannerSelectedDate);
+  $("#plannerEventText").value = plannerEvents[plannerSelectedDate] || "";
+  $("#plannerSaveStatus").textContent = "";
+}
+
+function initializePlannerCalendar() {
+  $("#plannerPrevMonth")?.addEventListener("click", () => {
+    const [year, month] = plannerMonth.split("-").map(Number);
+    const date = new Date(year, month - 2, 1);
+    plannerMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    plannerSelectedDate = `${plannerMonth}-01`;
+    renderPlannerCalendar();
+  });
+
+  $("#plannerNextMonth")?.addEventListener("click", () => {
+    const [year, month] = plannerMonth.split("-").map(Number);
+    const date = new Date(year, month, 1);
+    plannerMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    plannerSelectedDate = `${plannerMonth}-01`;
+    renderPlannerCalendar();
+  });
+
+  $("#plannerCalendarGrid")?.addEventListener("click", (event) => {
+    const dayButton = event.target.closest("[data-planner-date]");
+    if (!dayButton) return;
+    plannerSelectedDate = dayButton.dataset.plannerDate;
+    renderPlannerCalendar();
+  });
+
+  $("#plannerSaveEvents")?.addEventListener("click", () => {
+    const text = $("#plannerEventText").value.trim();
+    if (text) plannerEvents[plannerSelectedDate] = text;
+    else delete plannerEvents[plannerSelectedDate];
+
+    if (!savePlannerEvents()) return;
+    renderPlannerCalendar();
+    $("#plannerSaveStatus").textContent = text ? "行程已儲存 ✓" : "當日行程已清除 ✓";
+  });
+
+  $("#plannerClearEvents")?.addEventListener("click", () => {
+    $("#plannerEventText").value = "";
+    $("#plannerSaveStatus").textContent = "內容已清空，按「儲存行程」後才會套用。";
+  });
+}
+
 function initialize() {
   // 先恢復外觀設定，再初始化其他介面。
   initializeTheme();
@@ -1918,6 +2027,10 @@ function initialize() {
   $("#versionBtn")?.addEventListener("click", () => changelogDialog?.showModal());
   $("#closeChangelog")?.addEventListener("click", () => changelogDialog?.close());
   $("#closeChangelogFooter")?.addEventListener("click", () => changelogDialog?.close());
+
+  // 行事曆獨立儲存每日行程，不影響記帳資料。
+  initializePlannerCalendar();
+  renderPlannerCalendar();
 
   // 臨時計算機獨立運作，不會自動寫入記帳欄位。
   initializeCalculator();
