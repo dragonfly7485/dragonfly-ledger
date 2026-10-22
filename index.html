@@ -464,7 +464,7 @@
             <strong>應用程式</strong>
             <p>蜻蜓牌記帳本</p>
           </div>
-          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.2.1</button>
+          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.2.2</button>
         </div>
 
         <div class="settings-row">
@@ -507,13 +507,13 @@
         <div class="settings-backup">
           <h3>資料備份與還原</h3>
           <p class="settings-note">
-            備份會包含記帳紀錄與所有月份的預算。請將備份檔保存到網站以外的位置；
+            匯出前可選擇記帳資料與預算、行事曆內容或全部資料。請將備份檔保存到網站以外的位置；
             清除網站資料前，務必先匯出備份。
           </p>
           <button id="exportBtn" class="save-button settings-action-button" type="button">匯出備份檔</button>
           <button id="importBtn" class="cancel-button settings-action-button" type="button">匯入／還原備份</button>
           <input id="importFile" class="visually-hidden" type="file" accept=".json,application/json">
-          <p class="settings-help">匯入會取代目前裝置的記帳紀錄；新版備份也會還原預算。匯入舊版備份時，現有預算會保留。</p>
+          <p class="settings-help">匯入會還原備份檔中包含的資料類型；未包含的資料會保留不變。</p>
           <button id="resetAllBtn" class="reset-button settings-action-button" type="button">全部重置</button>
           <p class="settings-help reset-warning">會刪除本機所有記帳紀錄與預算，且無法直接復原。請先匯出備份。</p>
         </div>
@@ -539,6 +539,17 @@
 
   <!-- 新增與編輯紀錄視窗 -->
   <div id="budgetFeedback" class="budget-feedback" role="status" aria-live="polite"></div>
+
+  <dialog id="dataActionDialog" class="data-action-dialog" aria-labelledby="dataActionTitle">
+    <div class="dialog-heading"><h2 id="dataActionTitle">選擇資料範圍</h2><button id="closeDataAction" class="close-button" type="button" aria-label="關閉">×</button></div>
+    <p id="dataActionDescription" class="settings-note">請選擇要處理的資料。</p>
+    <div class="data-action-options">
+      <label class="data-action-option"><input type="radio" name="dataActionScope" value="ledger" checked><span><strong>記帳資料與預算設定</strong><small>所有記帳紀錄及各月份預算</small></span></label>
+      <label class="data-action-option"><input type="radio" name="dataActionScope" value="calendar"><span><strong>行事曆內容</strong><small>每日行程及完成勾選狀態</small></span></label>
+      <label class="data-action-option"><input type="radio" name="dataActionScope" value="all"><span><strong>全部資料</strong><small>記帳資料、預算設定與行事曆內容</small></span></label>
+    </div>
+    <div class="data-action-buttons"><button id="cancelDataAction" class="cancel-button" type="button">取消</button><button id="continueDataAction" class="save-button" type="button">繼續</button></div>
+  </dialog>
 
   <dialog id="resetDialog" class="reset-dialog" aria-labelledby="resetDialogTitle">
     <div class="reset-dialog-icon" aria-hidden="true">!</div>
@@ -569,13 +580,8 @@
       <button id="closeChangelog" class="close-button" type="button" aria-label="關閉更新紀錄">×</button>
     </div>
     <div class="changelog-entry">
-      <h3>v2.2.1 <span>目前版本</span></h3>
-      <ul>
-        <li>調整行事曆選單圖示與新增行程按鈕位置。</li>
-        <li>可依日期新增、編輯及刪除行程，刪除前會再次確認。</li>
-        <li>行程可勾選完成，完成後文字會顯示刪除線，狀態會保存在本機。</li>
-        <li>調整日期選取外觀與行程清單排版。</li>
-      </ul>
+      <h3>v2.2.2 <span>目前版本</span></h3>
+      <ul><li>匯出備份與全部重置前，可選擇記帳資料與預算、行事曆內容或全部資料。</li><li>行事曆備份包含每日行程及完成勾選狀態，可透過匯入／還原備份還原。</li><li>重置行事曆不會影響記帳紀錄與預算；重置記帳資料也不會影響行事曆。</li></ul>
     </div>
     <div class="changelog-entry">
       <h3>v2.2</h3>
@@ -822,7 +828,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261022-17" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261022-18" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
