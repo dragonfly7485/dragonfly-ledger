@@ -5,6 +5,7 @@ const BUDGET_STORAGE_KEY = "dragonfly-ledger-budgets-v1";
 const THEME_STORAGE_KEY = "dragonfly-ledger-theme-v1";
 const CARRIER_STORAGE_KEY = "dragonfly-ledger-carrier-v1";
 const PLANNER_EVENTS_STORAGE_KEY = "dragonfly-ledger-calendar-v1";
+const PLANNER_COMPLETED_STORAGE_KEY = "dragonfly-ledger-calendar-completed-v1";
 const CARRIER_PATTERN = /^\/[A-Z0-9.+-]{7}$/;
 
 const categories = {
@@ -1789,6 +1790,48 @@ function loadPlannerEvents() {
 }
 
 let plannerEvents = loadPlannerEvents();
+let plannerCompleted = loadPlannerCompleted();
+
+function loadPlannerCompleted() {
+  try {
+    const saved = localStorage.getItem(PLANNER_COMPLETED_STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : {};
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    console.error("讀取行程完成狀態失敗：", error);
+    return {};
+  }
+}
+
+function savePlannerCompleted() {
+  try {
+    localStorage.setItem(PLANNER_COMPLETED_STORAGE_KEY, JSON.stringify(plannerCompleted));
+    return true;
+  } catch (error) {
+    console.error("儲存行程完成狀態失敗：", error);
+    alert("行程完成狀態儲存失敗，可能是瀏覽器儲存空間不足。");
+    return false;
+  }
+}
+
+function isPlannerEventCompleted(date, index) {
+  return Array.isArray(plannerCompleted[date]) && plannerCompleted[date][index] === true;
+}
+
+function togglePlannerEventCompleted(date, index) {
+  const previous = Array.isArray(plannerCompleted[date]) ? [...plannerCompleted[date]] : [];
+  const current = [...previous];
+  current[index] = current[index] !== true;
+  if (current.some(Boolean)) plannerCompleted[date] = current;
+  else delete plannerCompleted[date];
+  if (!savePlannerCompleted()) {
+    if (previous.some(Boolean)) plannerCompleted[date] = previous;
+    else delete plannerCompleted[date];
+    return;
+  }
+  renderPlannerEventList();
+}
+
 let plannerMonth = localDate().slice(0, 7);
 let plannerSelectedDate = localDate();
 let pendingPlannerDelete = null;
@@ -1862,12 +1905,17 @@ function renderPlannerEventList() {
   items.className = "planner-event-items";
   events.forEach((eventText, index) => {
     const item = document.createElement("li");
-    const marker = document.createElement("span");
-    marker.className = "planner-event-marker";
-    marker.setAttribute("aria-hidden", "true");
+    const completed = isPlannerEventCompleted(plannerSelectedDate, index);
+    const marker = document.createElement("button");
+    marker.type = "button";
+    marker.className = "planner-event-complete";
+    marker.textContent = completed ? "✓" : "";
+    marker.setAttribute("aria-label", completed ? `標記未完成：${eventText}` : `標記完成：${eventText}`);
+    marker.setAttribute("aria-pressed", completed ? "true" : "false");
+    marker.addEventListener("click", () => togglePlannerEventCompleted(plannerSelectedDate, index));
     const textButton = document.createElement("button");
     textButton.type = "button";
-    textButton.className = "planner-event-item-text";
+    textButton.className = `planner-event-item-text${completed ? " is-completed" : ""}`;
     textButton.textContent = eventText;
     textButton.setAttribute("aria-label", `編輯行程：${eventText}`);
     textButton.addEventListener("click", () => openPlannerEventDialog(index));
@@ -1943,9 +1991,14 @@ function initializePlannerCalendar() {
       return;
     }
     events.splice(index, 1);
+    const completedItems = Array.isArray(plannerCompleted[date]) ? [...plannerCompleted[date]] : [];
+    completedItems.splice(index, 1);
+    if (completedItems.some(Boolean)) plannerCompleted[date] = completedItems;
+    else delete plannerCompleted[date];
     if (events.length) plannerEvents[date] = events.join("\n");
     else delete plannerEvents[date];
     if (!savePlannerEvents()) return;
+    if (!savePlannerCompleted()) return;
     $("#plannerDeleteDialog")?.close();
     pendingPlannerDelete = null;
     renderPlannerCalendar();
