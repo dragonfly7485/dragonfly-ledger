@@ -1791,6 +1791,7 @@ function loadPlannerEvents() {
 let plannerEvents = loadPlannerEvents();
 let plannerMonth = localDate().slice(0, 7);
 let plannerSelectedDate = localDate();
+let pendingPlannerDelete = null;
 
 function savePlannerEvents() {
   try {
@@ -1876,12 +1877,11 @@ function renderPlannerEventList() {
     deleteButton.textContent = "×";
     deleteButton.setAttribute("aria-label", `刪除行程：${eventText}`);
     deleteButton.addEventListener("click", () => {
-      const next = getPlannerEventLines();
-      next.splice(index, 1);
-      if (next.length) plannerEvents[plannerSelectedDate] = next.join("\n");
-      else delete plannerEvents[plannerSelectedDate];
-      if (!savePlannerEvents()) return;
-      renderPlannerCalendar();
+      const dialog = $("#plannerDeleteDialog");
+      if (!dialog) return;
+      pendingPlannerDelete = { date: plannerSelectedDate, index, text: eventText };
+      $("#plannerDeleteEventSummary").textContent = eventText;
+      dialog.showModal();
     });
     item.append(marker, textButton, deleteButton);
     items.append(item);
@@ -1927,6 +1927,32 @@ function initializePlannerCalendar() {
     renderPlannerCalendar();
   });
 
+  $("#cancelPlannerDelete")?.addEventListener("click", () => {
+    $("#plannerDeleteDialog")?.close();
+    pendingPlannerDelete = null;
+  });
+  $("#confirmPlannerDelete")?.addEventListener("click", () => {
+    if (!pendingPlannerDelete) return;
+    const { date, index, text } = pendingPlannerDelete;
+    const events = getPlannerEventLines(date);
+    // 確認時再次核對行程內容，避免誤刪其他項目。
+    if (events[index] !== text) {
+      $("#plannerDeleteDialog")?.close();
+      pendingPlannerDelete = null;
+      renderPlannerCalendar();
+      return;
+    }
+    events.splice(index, 1);
+    if (events.length) plannerEvents[date] = events.join("\n");
+    else delete plannerEvents[date];
+    if (!savePlannerEvents()) return;
+    $("#plannerDeleteDialog")?.close();
+    pendingPlannerDelete = null;
+    renderPlannerCalendar();
+  });
+  $("#plannerDeleteDialog")?.addEventListener("close", () => {
+    pendingPlannerDelete = null;
+  });
   $("#plannerAddEvent")?.addEventListener("click", () => openPlannerEventDialog());
   $("#closePlannerEventDialog")?.addEventListener("click", () => $("#plannerEventDialog")?.close());
   $("#cancelPlannerEventDialog")?.addEventListener("click", () => $("#plannerEventDialog")?.close());
