@@ -2196,3 +2196,18 @@ dialog select {
 @media (max-width: 390px) {
   .planner-event-list-card { padding: 14px; }
 }
+
+
+/* 行事曆行程視窗沿用新增記帳的對話框外觀 */
+.planner-event-dialog { width: min(420px, calc(100% - 32px)); max-height: min(84vh, 720px); overflow-y: auto; }
+.planner-event-dialog form { width: 100%; }
+.planner-dialog-date { margin: -4px 0 18px; color: var(--muted); font-size: 13px; }
+#plannerEventInput { display: block; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 13px; background: var(--background); color: var(--text); font: inherit; }
+#plannerEventInput:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+.planner-event-dialog .save-button { margin-top: 14px; }
+.planner-day { padding-bottom: 10px; }
+.planner-day-dot { position: absolute; bottom: 4px; left: 50%; width: 7px; height: 7px; border-radius: 50%; background: #d6a23e; transform: translateX(-50%); }
+.planner-event-items li { align-items: center; }
+.planner-event-item-text { flex: 1; min-width: 0; padding: 0; border: 0; background: transparent; color: var(--text); text-align: left; font: inherit; line-height: 1.65; overflow-wrap: anywhere; white-space: normal; cursor: pointer; }
+.planner-event-delete { flex: 0 0 30px; width: 30px; height: 30px; border: 0; border-radius: 9px; background: var(--surface-soft); color: var(--muted); font-size: 20px; cursor: pointer; }
+.planner-event-delete:active { background: var(--border); }
