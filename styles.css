@@ -2428,3 +2428,16 @@ dialog select {
   text-decoration-thickness: 1.5px;
   opacity: .78;
 }
+
+
+/* v2.2.2 資料範圍選擇 */
+.data-action-dialog{width:min(430px,calc(100% - 28px));max-width:calc(100% - 28px);padding:22px;border:1px solid var(--border);border-radius:22px;background:var(--surface);color:var(--text)}
+.data-action-dialog::backdrop{background:rgba(10,18,14,.48)}
+.data-action-options{display:grid;gap:10px;margin:18px 0 20px}
+.data-action-option{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:13px;background:var(--surface-soft);cursor:pointer}
+.data-action-option input{flex:0 0 auto;width:18px;height:18px;accent-color:var(--green)}
+.data-action-option span{display:grid;gap:4px}
+.data-action-option strong{font-size:14px}
+.data-action-option small{color:var(--muted);font-size:12px;line-height:1.5}
+.data-action-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.data-action-buttons button{margin:0;min-height:46px}
