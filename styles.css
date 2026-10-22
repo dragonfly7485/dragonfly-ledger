@@ -2398,3 +2398,33 @@ dialog select {
     font-size: 11px;
   }
 }
+
+
+/* 行程完成勾選與完成文字樣式 */
+.planner-event-complete {
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background: var(--card);
+  color: var(--green);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.planner-event-complete[aria-pressed="true"] {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+.planner-event-item-text.is-completed {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  opacity: .78;
+}
