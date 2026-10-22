@@ -391,7 +391,22 @@
     <!-- ========================
          行事曆頁
          ======================== -->
-    <section id="calendarSection" class="planner-section" hidden aria-labelledby="plannerTitle">
+      <dialog id="plannerEventDialog" class="planner-event-dialog" aria-labelledby="plannerEventDialogTitle">
+    <form id="plannerEventForm">
+      <div class="dialog-heading">
+        <h2 id="plannerEventDialogTitle">新增行程</h2>
+        <button id="closePlannerEventDialog" class="close-button" type="button" aria-label="關閉">×</button>
+      </div>
+      <p id="plannerEventDialogDate" class="planner-dialog-date"></p>
+      <label class="field-label" for="plannerEventInput">行程內容</label>
+      <input id="plannerEventInput" type="text" maxlength="120" autocomplete="off" placeholder="例如：18:00 買生活用品" required>
+      <p id="plannerEventDialogError" class="form-error" role="alert"></p>
+      <button class="save-button" type="submit">儲存行程</button>
+      <button id="cancelPlannerEventDialog" class="cancel-button" type="button">取消</button>
+    </form>
+  </dialog>
+
+<section id="calendarSection" class="planner-section" hidden aria-labelledby="plannerTitle">
       <div class="section-heading">
         <div>
           <p class="eyebrow">YOUR CALENDAR</p>
@@ -426,22 +441,7 @@
         <p id="plannerSaveStatus" class="planner-save-status" role="status" aria-live="polite"></p>
       </div>
 
-      <div class="budget-card planner-event-card" hidden>
-        <div class="planner-event-heading">
-          <div>
-            <p class="eyebrow">EDIT DAILY PLAN</p>
-            <h3 id="plannerEditorTitle">新增行程</h3>
-          </div>
-          <span class="planner-event-label">每行一件事</span>
-        </div>
-        <label class="planner-event-label-input" for="plannerEventText">行程內容</label>
-        <textarea id="plannerEventText" rows="4" maxlength="2000" placeholder="例如：&#10;09:00 上課&#10;18:00 買生活用品&#10;每一行可以記一件事"></textarea>
-        <p class="planner-event-help">可一次新增多件行程，每一行會分開顯示在下方。</p>
-        <div class="planner-event-actions">
-          <button id="plannerCancelEdit" class="cancel-button" type="button">取消</button>
-          <button id="plannerSaveEvents" class="save-button" type="button">儲存行程</button>
-        </div>
-      </div>
+
     </section>
 
     <!-- ========================
@@ -812,7 +812,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261022-12" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261022-13" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
