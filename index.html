@@ -79,7 +79,7 @@
         type="button"
         data-page-target="calendar"
       >
-        <span class="menu-item-icon" aria-hidden="true">▦</span>
+        <span class="menu-item-icon calendar-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7.5 3.5v4M16.5 3.5v4M4 9.5h16M8 13h2m4 0h2M8 16.5h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
         <span>行事曆</span>
       </button>
 
@@ -412,7 +412,9 @@
         <p class="planner-calendar-hint"><span class="planner-dot" aria-hidden="true"></span> 有安排的日期</p>
       </div>
 
-      <div class="budget-card planner-event-card">
+      <button id="plannerAddEvent" class="planner-add-event-button" type="button">＋ 新增行程</button>
+
+      <div class="budget-card planner-event-list-card">
         <div class="planner-event-heading">
           <div>
             <p class="eyebrow">DAILY PLAN</p>
@@ -420,11 +422,22 @@
           </div>
           <span class="planner-event-label">當日行程</span>
         </div>
-        <label class="planner-event-label-input" for="plannerEventText">今天有什麼事情？</label>
+        <div id="plannerEventList" class="planner-event-list" aria-live="polite"></div>
+      </div>
+
+      <div class="budget-card planner-event-card" hidden>
+        <div class="planner-event-heading">
+          <div>
+            <p class="eyebrow">EDIT DAILY PLAN</p>
+            <h3 id="plannerEditorTitle">新增行程</h3>
+          </div>
+          <span class="planner-event-label">每行一件事</span>
+        </div>
+        <label class="planner-event-label-input" for="plannerEventText">行程內容</label>
         <textarea id="plannerEventText" rows="4" maxlength="2000" placeholder="例如：&#10;09:00 上課&#10;18:00 買生活用品&#10;每一行可以記一件事"></textarea>
-        <p class="planner-event-help">每一行可以記一件事，儲存後會在日期下方顯示標記。</p>
+        <p class="planner-event-help">可一次新增多件行程，每一行會分開顯示在下方。</p>
         <div class="planner-event-actions">
-          <button id="plannerClearEvents" class="cancel-button" type="button">清空內容</button>
+          <button id="plannerCancelEdit" class="cancel-button" type="button">取消</button>
           <button id="plannerSaveEvents" class="save-button" type="button">儲存行程</button>
         </div>
         <p id="plannerSaveStatus" class="planner-save-status" role="status" aria-live="polite"></p>
@@ -453,7 +466,7 @@
             <strong>應用程式</strong>
             <p>蜻蜓牌記帳本</p>
           </div>
-          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.2</button>
+          <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.3</button>
         </div>
 
         <div class="settings-row">
@@ -559,7 +572,15 @@
       <button id="closeChangelog" class="close-button" type="button" aria-label="關閉更新紀錄">×</button>
     </div>
     <div class="changelog-entry">
-      <h3>v2.2 <span>目前版本</span></h3>
+      <h3>v2.3 <span>目前版本</span></h3>
+      <ul>
+        <li>更換選單中的行事曆圖示。</li>
+        <li>新增「新增行程」按鈕，行程會列在日曆下方。</li>
+        <li>可依日期查看、編輯及儲存每日行程，資料仍保存在本機。</li>
+      </ul>
+    </div>
+    <div class="changelog-entry">
+      <h3>v2.2</h3>
       <ul>
         <li>新增行事曆，可查看每月日期與星期排列。</li>
         <li>點選日期即可新增、修改或清除當日行程。</li>
@@ -791,7 +812,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261022-11" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261022-12" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
