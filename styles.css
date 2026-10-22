@@ -2130,3 +2130,43 @@ dialog select {
   .calculator-keys { gap: 7px; }
   .calc-key { min-height: 51px; border-radius: 14px; }
 }
+
+
+/* =========================
+   行事曆
+   ========================= */
+.planner-section { margin-bottom: 26px; }
+.planner-calendar-card, .planner-event-card { padding: 18px; margin-bottom: 16px; }
+.planner-month-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.planner-month-nav strong { font-size: 18px; letter-spacing: .03em; }
+.planner-month-button { width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface, var(--card)); color: var(--text); font-size: 27px; line-height: 1; }
+.planner-weekdays, .planner-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.planner-weekdays { margin-bottom: 7px; }
+.planner-weekdays span { padding: 5px 0; color: var(--muted); text-align: center; font-size: 12px; font-weight: 700; }
+.planner-day-empty { min-height: 48px; }
+.planner-day { position: relative; display: flex; min-width: 0; min-height: 48px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 5px 2px 4px; border: 1px solid transparent; border-radius: 13px; background: transparent; color: var(--text); font: inherit; cursor: pointer; }
+.planner-day-number { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; font-size: 14px; }
+.planner-day.today .planner-day-number { outline: 1px solid var(--green); outline-offset: 1px; font-weight: 800; }
+.planner-day.selected { border-color: var(--green); background: var(--green-light); }
+.planner-day.selected .planner-day-number { background: var(--green); color: #fff; }
+.planner-day-dot { display: block; width: 5px; height: 5px; border-radius: 50%; background: #d6a23e; }
+.planner-day-dot-empty { background: transparent; }
+.planner-calendar-hint { display: flex; align-items: center; gap: 7px; margin: 14px 0 0; color: var(--muted); font-size: 12px; }
+.planner-dot { width: 6px; height: 6px; border-radius: 50%; background: #d6a23e; }
+.planner-event-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.planner-event-heading h3 { margin: 2px 0 0; font-size: 17px; }
+.planner-event-label { color: var(--muted); font-size: 12px; }
+.planner-event-label-input { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; }
+#plannerEventText { display: block; width: 100%; min-height: 110px; resize: vertical; border: 1px solid var(--border); border-radius: 13px; padding: 12px; background: var(--background); color: var(--text); font: inherit; line-height: 1.65; }
+#plannerEventText::placeholder { color: var(--muted); }
+.planner-event-help { margin: 8px 0 14px; color: var(--muted); font-size: 12px; }
+.planner-event-actions { display: flex; justify-content: flex-end; gap: 9px; }
+.planner-save-status { min-height: 1.3em; margin: 8px 0 0; color: var(--green); font-size: 12px; }
+:root[data-theme="dark"] .planner-day.selected { background: rgba(57, 120, 90, .25); }
+:root[data-theme="dark"] .planner-day.selected .planner-day-number { background: #39785a; }
+@media (max-width: 390px) {
+  .planner-calendar-card, .planner-event-card { padding: 14px; }
+  .planner-weekdays, .planner-calendar-grid { gap: 3px; }
+  .planner-day, .planner-day-empty { min-height: 43px; }
+  .planner-day-number { width: 26px; height: 26px; font-size: 13px; }
+}
