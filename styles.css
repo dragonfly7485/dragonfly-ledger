@@ -2211,3 +2211,18 @@ dialog select {
 .planner-event-item-text { flex: 1; min-width: 0; padding: 0; border: 0; background: transparent; color: var(--text); text-align: left; font: inherit; line-height: 1.65; overflow-wrap: anywhere; white-space: normal; cursor: pointer; }
 .planner-event-delete { flex: 0 0 30px; width: 30px; height: 30px; border: 0; border-radius: 9px; background: var(--surface-soft); color: var(--muted); font-size: 20px; cursor: pointer; }
 .planner-event-delete:active { background: var(--border); }
+
+
+/* 行事曆介面微調：選取日期只顯示外框，新增行程置於右上角 */
+.planner-section-heading { align-items: center; gap: 12px; }
+.planner-section-heading > div { min-width: 0; }
+.planner-add-event-top-button { flex: 0 0 auto; width: auto; min-height: 40px; margin: 0; padding: 9px 12px; border-radius: 12px; font-size: 13px; white-space: nowrap; }
+.planner-day.selected { border-color: var(--green); background: transparent; }
+.planner-day.selected .planner-day-number { background: transparent; color: var(--text); }
+.planner-day.today .planner-day-number { outline: none; font-weight: inherit; }
+.planner-day.selected.today .planner-day-number { font-weight: inherit; }
+.planner-day-dot { position: absolute; bottom: 3px; left: 50%; width: 6px; height: 6px; border-radius: 50%; background: #d6a23e; transform: translateX(-50%); }
+@media (max-width: 390px) {
+  .planner-section-heading { gap: 8px; }
+  .planner-add-event-top-button { min-height: 38px; padding: 8px 9px; font-size: 12px; }
+}
