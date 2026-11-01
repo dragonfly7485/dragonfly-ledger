@@ -542,65 +542,6 @@
           </div>
         </div>
       </div>
-        <div class="settings-group settings-group-general">
-          <h3>一般設定</h3>
-          <div class="settings-row">
-            <div><strong>應用程式</strong><p>蜻蜓牌記帳本</p></div>
-            <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.3</button>
-          </div>
-          <div class="settings-row">
-            <div><strong>記帳幣別</strong><p>新臺幣（TWD）</p></div>
-            <span class="settings-value">NT$</span>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <h3>記帳設定</h3>
-          <div class="settings-backup carrier-settings">
-            <h3>電子發票載具</h3>
-            <p class="settings-note">設定你的手機條碼後，首頁就能快速顯示給店員掃描。條碼只儲存在這台裝置，不會上傳或放進記帳備份檔。</p>
-            <label class="carrier-input-label" for="carrierBarcodeInput">手機條碼</label>
-            <input id="carrierBarcodeInput" class="carrier-barcode-input" type="text" maxlength="8" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="/AB12CD3" aria-describedby="carrierSettingsHelp carrierSettingsFeedback">
-            <button id="saveCarrierBtn" class="save-button settings-action-button" type="button">儲存載具條碼</button>
-            <p id="carrierSettingsFeedback" class="settings-help" role="status" aria-live="polite"></p>
-            <label class="carrier-toggle-row" for="carrierEnabledToggle">
-              <span><strong>顯示首頁「顯示載具」按鈕</strong><small>關閉後，首頁不會顯示載具按鈕。</small></span>
-              <input id="carrierEnabledToggle" type="checkbox">
-            </label>
-            <p id="carrierSettingsHelp" class="settings-help">請輸入以「/」開頭、共 8 個字元的手機條碼。清空並儲存即可移除載具；未設定有效條碼時，首頁按鈕會自動隱藏。</p>
-          </div>
-
-          <div class="settings-backup payment-settings">
-            <h3>付款方式管理</h3>
-            <p class="settings-note">可新增、修改或刪除付款方式。刪除或修改名稱都不會改動過去的記帳紀錄。</p>
-            <div class="payment-method-add">
-              <input id="newPaymentMethodInput" type="text" maxlength="24" placeholder="輸入付款方式名稱" aria-label="新付款方式名稱">
-              <button id="addPaymentMethodBtn" class="save-button" type="button">新增</button>
-            </div>
-            <div id="paymentMethodList" class="payment-method-list"></div>
-            <p id="paymentMethodFeedback" class="settings-help" role="status" aria-live="polite"></p>
-          </div>
-        </div>
-
-        <div class="settings-group">
-          <h3>資料管理</h3>
-          <div class="settings-row">
-            <div><strong>資料儲存</strong><p>儲存在目前裝置</p></div>
-            <span class="settings-value">本機</span>
-          </div>
-          <div class="settings-backup">
-            <h3>資料備份與還原</h3>
-            <p class="settings-note">匯出前可選擇記帳資料與預算、行事曆內容或全部資料。請將備份檔保存到網站以外的位置；清除網站資料前，務必先匯出備份。</p>
-            <button id="exportBtn" class="save-button settings-action-button" type="button">匯出備份檔</button>
-            <button id="importBtn" class="cancel-button settings-action-button" type="button">匯入／還原備份</button>
-            <input id="importFile" class="visually-hidden" type="file" accept=".json,application/json">
-            <p class="settings-help">匯入會還原備份檔中包含的資料類型；未包含的資料會保留不變。</p>
-            <button id="resetAllBtn" class="reset-button settings-action-button" type="button">全部重置</button>
-            <p class="settings-help reset-warning">會刪除本機所有記帳紀錄與預算，且無法直接復原。請先匯出備份。</p>
-          </div>
-        </div>
-        <p class="settings-note">目前的記帳資料不會自動同步到其他裝置。請勿任意清除瀏覽器網站資料，以免遺失紀錄。</p>
-      </div>
     </section>
 
     <!-- 首頁快捷按鈕：載具未設定或關閉時自動隱藏 -->
