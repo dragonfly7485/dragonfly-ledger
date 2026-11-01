@@ -995,7 +995,7 @@ function handlePaymentMethodActions(event) {
   renderPaymentPie(getMonthRecords());
 }
 
-function renderQueryRecords() {function renderQueryRecords() {
+function renderQueryRecords() {
   const list = $("#queryRecordsList");
   const count = $("#queryRecordCount");
   const monthLabel = $("#queryMonthLabel");
@@ -2272,7 +2272,7 @@ function initialize() {
     if (event.target.closest("#resetAllBtn")) resetAllData();
   });
 
-  // 點擊版本號查看更新紀錄。  // 點擊版本號查看更新紀錄。
+  // 點擊版本號查看更新紀錄。
   const changelogDialog = $("#changelogDialog");
   $("#versionBtn")?.addEventListener("click", () => changelogDialog?.showModal());
   $("#closeChangelog")?.addEventListener("click", () => changelogDialog?.close());
