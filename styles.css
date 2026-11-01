@@ -2548,3 +2548,53 @@ dialog select {
   font-size: 13px;
   line-height: 1.8;
 }
+
+
+/* v2.3：分類式設定子頁 */
+.settings-section-heading { display: flex; align-items: center; gap: 12px; }
+.settings-back-button {
+  border: 0;
+  border-radius: 12px;
+  padding: 8px 11px;
+  background: var(--surface-soft, var(--card));
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.settings-back-button span { font-size: 23px; vertical-align: -2px; }
+.settings-home-panel { display: grid; gap: 10px; }
+.settings-category-button {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-height: 72px;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.settings-category-button:active { transform: scale(.99); }
+.settings-category-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  background: var(--surface-soft, var(--card));
+  font-size: 21px;
+}
+.settings-category-button > span:nth-child(2) { display: grid; gap: 4px; }
+.settings-category-button strong { font-size: 15px; }
+.settings-category-button small { color: var(--muted); font-size: 12px; }
+.settings-category-chevron { margin-left: auto; color: var(--muted); font-size: 25px; }
+.settings-subpanel[hidden], .settings-home-panel[hidden] { display: none !important; }
+.settings-subpanel { display: grid; gap: 14px; }
+.settings-subpanel .settings-group { display: grid; gap: 14px; }
+.settings-subpanel .settings-backup { margin-top: 0; }
