@@ -5,7 +5,6 @@ const BUDGET_STORAGE_KEY = "dragonfly-ledger-budgets-v1";
 const THEME_STORAGE_KEY = "dragonfly-ledger-theme-v1";
 const CARRIER_STORAGE_KEY = "dragonfly-ledger-carrier-v1";
 const PAYMENT_METHODS_STORAGE_KEY = "dragonfly-ledger-payment-methods-v1";
-const ANNOUNCEMENT_READ_STORAGE_KEY = "dragonfly-ledger-announcements-read-v1";
 const DEFAULT_PAYMENT_METHODS = ["現金", "金融卡", "信用卡", "銀行轉帳", "LINE Pay", "街口支付", "Apple Pay", "Google Pay", "悠遊卡", "一卡通", "其他"];
 const PLANNER_EVENTS_STORAGE_KEY = "dragonfly-ledger-calendar-v1";
 const PLANNER_COMPLETED_STORAGE_KEY = "dragonfly-ledger-calendar-completed-v1";
@@ -387,7 +386,7 @@ function initializeTheme() {
 
     themeRow.innerHTML = `
       <div>
-        <strong>外觀</strong>
+        <strong>外觀與主題</strong>
         <p>自訂應用程式的顯示風格</p>
       </div>
       <select id="themeSelect" aria-label="選擇外觀主題">
@@ -396,27 +395,8 @@ function initializeTheme() {
       </select>
     `;
 
-    // 優先放在「資料儲存」設定列之前。
-    const settingsRows = [
-      ...settingsCard.querySelectorAll(".settings-row")
-    ];
-
     const generalGroup = settingsCard.querySelector(".settings-group-general");
-    const dataRow = settingsRows.find((row) =>
-      row.querySelector("strong")?.textContent.trim() === "資料儲存"
-    );
-
-    const note = settingsCard.querySelector(".settings-note");
-
-    if (generalGroup) {
-      generalGroup.appendChild(themeRow);
-    } else if (dataRow) {
-      settingsCard.insertBefore(themeRow, dataRow);
-    } else if (note) {
-      settingsCard.insertBefore(themeRow, note);
-    } else {
-      settingsCard.appendChild(themeRow);
-    }
+    if (generalGroup) generalGroup.appendChild(themeRow);
   }
 
   const themeSelect = $("#themeSelect");
@@ -1015,35 +995,7 @@ function handlePaymentMethodActions(event) {
   renderPaymentPie(getMonthRecords());
 }
 
-const ANNOUNCEMENTS = [{ id: "v2.3-2026-11-01", title: "V2.3 功能更新公告" }];
-
-function getReadAnnouncementIds() {
-  try {
-    const value = JSON.parse(localStorage.getItem(ANNOUNCEMENT_READ_STORAGE_KEY) || "[]");
-    return Array.isArray(value) ? value.filter(item => typeof item === "string") : [];
-  } catch { return []; }
-}
-
-function updateAnnouncementBadge() {
-  const dot = $("#announcementDot");
-  if (dot) dot.hidden = ANNOUNCEMENTS.every(item => getReadAnnouncementIds().includes(item.id));
-}
-
-function openAnnouncementDialog() {
-  const dialog = $("#announcementDialog");
-  if (!dialog) return;
-  dialog.showModal();
-  const readIds = new Set(getReadAnnouncementIds());
-  ANNOUNCEMENTS.forEach(item => readIds.add(item.id));
-  try {
-    localStorage.setItem(ANNOUNCEMENT_READ_STORAGE_KEY, JSON.stringify([...readIds]));
-  } catch (error) {
-    console.error("儲存公告已讀狀態失敗：", error);
-  }
-  updateAnnouncementBadge();
-}
-
-function renderQueryRecords() {
+function renderQueryRecords() {function renderQueryRecords() {
   const list = $("#queryRecordsList");
   const count = $("#queryRecordCount");
   const monthLabel = $("#queryMonthLabel");
@@ -2133,9 +2085,50 @@ function initializePlannerCalendar() {
   });
 }
 
+function initializeSettingsNavigation() {
+  const section = $("#settingsSection");
+  const title = $("#settingsTitle");
+  const back = $("#settingsBackButton");
+  const home = $("#settingsHomePanel");
+  const panels = {
+    general: $("#settingsPanel-general"),
+    ledger: $("#settingsPanel-ledger"),
+    data: $("#settingsPanel-data")
+  };
+  const names = { general: "一般設定", ledger: "記帳設定", data: "資料管理" };
+
+  function showSettingsHome() {
+    home.hidden = false;
+    Object.values(panels).forEach(panel => { if (panel) panel.hidden = true; });
+    title.textContent = "⚙️ 設定";
+    back.hidden = true;
+    section.dataset.settingsPanel = "home";
+  }
+
+  function showSettingsPanel(name) {
+    if (!panels[name]) return;
+    home.hidden = true;
+    Object.entries(panels).forEach(([key, panel]) => { if (panel) panel.hidden = key !== name; });
+    title.textContent = names[name];
+    back.hidden = false;
+    section.dataset.settingsPanel = name;
+    if (name === "ledger") {
+      renderCarrierSettings();
+      renderPaymentMethodsSettings();
+    }
+  }
+
+  section.querySelectorAll("[data-settings-open]").forEach(button => {
+    button.addEventListener("click", () => showSettingsPanel(button.dataset.settingsOpen));
+  });
+  back.addEventListener("click", showSettingsHome);
+  showSettingsHome();
+}
+
 function initialize() {
   // 先恢復外觀設定，再初始化其他介面。
   initializeTheme();
+  initializeSettingsNavigation();
 
   const today = localDate();
 
@@ -2279,16 +2272,7 @@ function initialize() {
     if (event.target.closest("#resetAllBtn")) resetAllData();
   });
 
-  // 公告按鈕：開啟視窗時即將目前公告標記為已讀。
-  $("#announcementBtn")?.addEventListener("click", openAnnouncementDialog);
-  $("#closeAnnouncement")?.addEventListener("click", () => $("#announcementDialog")?.close());
-  $("#closeAnnouncementFooter")?.addEventListener("click", () => $("#announcementDialog")?.close());
-  $("#announcementDialog")?.addEventListener("click", event => {
-    if (event.target === event.currentTarget) event.currentTarget.close();
-  });
-  updateAnnouncementBadge();
-
-  // 點擊版本號查看更新紀錄。
+  // 點擊版本號查看更新紀錄。  // 點擊版本號查看更新紀錄。
   const changelogDialog = $("#changelogDialog");
   $("#versionBtn")?.addEventListener("click", () => changelogDialog?.showModal());
   $("#closeChangelog")?.addEventListener("click", () => changelogDialog?.close());
