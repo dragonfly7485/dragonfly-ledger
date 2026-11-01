@@ -92,11 +92,12 @@ button:disabled {
     calc(110px + env(safe-area-inset-bottom));
 }
 
-.topbar {
+ .topbar {
   display: flex;
   align-items: center;
   gap: 12px;
   padding-left: 54px;
+  padding-right: 54px;
   margin-bottom: 28px;
 }
 
