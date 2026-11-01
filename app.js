@@ -395,7 +395,7 @@ function initializeTheme() {
       </select>
     `;
 
-    const generalGroup = settingsCard.querySelector(".settings-group-general");
+    const generalGroup = $("#settingsGeneralBlock");
     if (generalGroup) generalGroup.appendChild(themeRow);
   }
 
@@ -993,6 +993,34 @@ function handlePaymentMethodActions(event) {
   updatePaymentSelectOptions();
   renderPaymentMethodsSettings();
   renderPaymentPie(getMonthRecords());
+}
+
+const ANNOUNCEMENTS = [{ id: "v2.3-2026-11-01", title: "V2.3 功能更新公告" }];
+
+function getReadAnnouncementIds() {
+  try {
+    const value = JSON.parse(localStorage.getItem("dragonfly-ledger-announcements-read-v1") || "[]");
+    return Array.isArray(value) ? value.filter(item => typeof item === "string") : [];
+  } catch { return []; }
+}
+
+function updateAnnouncementBadge() {
+  const dot = $("#announcementDot");
+  if (dot) dot.hidden = ANNOUNCEMENTS.every(item => getReadAnnouncementIds().includes(item.id));
+}
+
+function openAnnouncementDialog() {
+  const dialog = $("#announcementDialog");
+  if (!dialog) return;
+  dialog.showModal();
+  const readIds = new Set(getReadAnnouncementIds());
+  ANNOUNCEMENTS.forEach(item => readIds.add(item.id));
+  try {
+    localStorage.setItem("dragonfly-ledger-announcements-read-v1", JSON.stringify([...readIds]));
+  } catch (error) {
+    console.error("儲存公告已讀狀態失敗：", error);
+  }
+  updateAnnouncementBadge();
 }
 
 function renderQueryRecords() {
@@ -2089,15 +2117,17 @@ function initializeSettingsNavigation() {
   const section = $("#settingsSection");
   const title = $("#settingsTitle");
   const back = $("#settingsBackButton");
+  const general = $("#settingsGeneralBlock");
   const home = $("#settingsHomePanel");
   const panels = {
-    general: $("#settingsPanel-general"),
-    ledger: $("#settingsPanel-ledger"),
+    carrier: $("#settingsPanel-carrier"),
+    payments: $("#settingsPanel-payments"),
     data: $("#settingsPanel-data")
   };
-  const names = { general: "一般設定", ledger: "記帳設定", data: "資料管理" };
+  const names = { carrier: "電子發票載具", payments: "付款方式", data: "資料管理" };
 
   function showSettingsHome() {
+    general.hidden = false;
     home.hidden = false;
     Object.values(panels).forEach(panel => { if (panel) panel.hidden = true; });
     title.textContent = "⚙️ 設定";
@@ -2107,15 +2137,14 @@ function initializeSettingsNavigation() {
 
   function showSettingsPanel(name) {
     if (!panels[name]) return;
+    general.hidden = true;
     home.hidden = true;
     Object.entries(panels).forEach(([key, panel]) => { if (panel) panel.hidden = key !== name; });
     title.textContent = names[name];
     back.hidden = false;
     section.dataset.settingsPanel = name;
-    if (name === "ledger") {
-      renderCarrierSettings();
-      renderPaymentMethodsSettings();
-    }
+    if (name === "carrier") renderCarrierSettings();
+    if (name === "payments") renderPaymentMethodsSettings();
   }
 
   section.querySelectorAll("[data-settings-open]").forEach(button => {
@@ -2271,6 +2300,15 @@ function initialize() {
   document.addEventListener("click", (event) => {
     if (event.target.closest("#resetAllBtn")) resetAllData();
   });
+
+  // 公告按鈕：開啟時將目前公告標記為已讀。
+  $("#announcementBtn")?.addEventListener("click", openAnnouncementDialog);
+  $("#closeAnnouncement")?.addEventListener("click", () => $("#announcementDialog")?.close());
+  $("#closeAnnouncementFooter")?.addEventListener("click", () => $("#announcementDialog")?.close());
+  $("#announcementDialog")?.addEventListener("click", event => {
+    if (event.target === event.currentTarget) event.currentTarget.close();
+  });
+  updateAnnouncementBadge();
 
   // 點擊版本號查看更新紀錄。
   const changelogDialog = $("#changelogDialog");
