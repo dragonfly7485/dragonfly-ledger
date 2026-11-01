@@ -2598,3 +2598,10 @@ dialog select {
 .settings-subpanel { display: grid; gap: 14px; }
 .settings-subpanel .settings-group { display: grid; gap: 14px; }
 .settings-subpanel .settings-backup { margin-top: 0; }
+
+
+/* v2.3.1：一般設定直接顯示，載具與付款方式各自獨立入口 */
+#settingsGeneralBlock { margin-bottom: 16px; }
+#settingsGeneralBlock > h3 { margin-top: 0; }
+#settingsHomePanel { display: grid; gap: 10px; }
+#settingsHomePanel[hidden], #settingsGeneralBlock[hidden] { display: none !important; }
