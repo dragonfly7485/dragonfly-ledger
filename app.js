@@ -4,6 +4,9 @@ const STORAGE_KEY = "dragonfly-ledger-v1";
 const BUDGET_STORAGE_KEY = "dragonfly-ledger-budgets-v1";
 const THEME_STORAGE_KEY = "dragonfly-ledger-theme-v1";
 const CARRIER_STORAGE_KEY = "dragonfly-ledger-carrier-v1";
+const PAYMENT_METHODS_STORAGE_KEY = "dragonfly-ledger-payment-methods-v1";
+const ANNOUNCEMENT_READ_STORAGE_KEY = "dragonfly-ledger-announcements-read-v1";
+const DEFAULT_PAYMENT_METHODS = ["現金", "金融卡", "信用卡", "銀行轉帳", "LINE Pay", "街口支付", "Apple Pay", "Google Pay", "悠遊卡", "一卡通", "其他"];
 const PLANNER_EVENTS_STORAGE_KEY = "dragonfly-ledger-calendar-v1";
 const PLANNER_COMPLETED_STORAGE_KEY = "dragonfly-ledger-calendar-completed-v1";
 const CARRIER_PATTERN = /^\/[A-Z0-9.+-]{7}$/;
@@ -29,11 +32,7 @@ const categoryIcons = {
   其他: "🧾"
 };
 
-const paymentMethods = [
-  "現金", "金融卡", "信用卡", "銀行轉帳", "LINE Pay",
-  "街口支付", "Apple Pay", "Google Pay", "悠遊卡",
-  "一卡通", "其他"
-];
+let paymentMethods = loadPaymentMethods();
 
 const chartColors = [
   "#39785A", "#D6AF66", "#94A7C0", "#C97965",
@@ -49,6 +48,30 @@ let editingId = null;
 /* =========================
    資料儲存
    ========================= */
+
+function loadPaymentMethods() {
+  try {
+    const saved = localStorage.getItem(PAYMENT_METHODS_STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : null;
+    if (!Array.isArray(parsed)) return [...DEFAULT_PAYMENT_METHODS];
+    const cleaned = [...new Set(parsed.filter(value => typeof value === "string" && value.trim()).map(value => value.trim()))];
+    if (!cleaned.includes("其他")) cleaned.push("其他");
+    return cleaned.length ? cleaned : [...DEFAULT_PAYMENT_METHODS];
+  } catch (error) {
+    console.error("讀取付款方式失敗：", error);
+    return [...DEFAULT_PAYMENT_METHODS];
+  }
+}
+
+function savePaymentMethods() {
+  try {
+    localStorage.setItem(PAYMENT_METHODS_STORAGE_KEY, JSON.stringify(paymentMethods));
+    return true;
+  } catch (error) {
+    alert("付款方式儲存失敗，請確認瀏覽器儲存空間。");
+    return false;
+  }
+}
 
 function loadRecords() {
   try {
@@ -378,13 +401,16 @@ function initializeTheme() {
       ...settingsCard.querySelectorAll(".settings-row")
     ];
 
+    const generalGroup = settingsCard.querySelector(".settings-group-general");
     const dataRow = settingsRows.find((row) =>
       row.querySelector("strong")?.textContent.trim() === "資料儲存"
     );
 
     const note = settingsCard.querySelector(".settings-note");
 
-    if (dataRow) {
+    if (generalGroup) {
+      generalGroup.appendChild(themeRow);
+    } else if (dataRow) {
       settingsCard.insertBefore(themeRow, dataRow);
     } else if (note) {
       settingsCard.insertBefore(themeRow, note);
@@ -428,6 +454,10 @@ function currentMonth() {
   return $("#monthPicker").value || localDate().slice(0, 7);
 }
 
+function queryMonth() {
+  return $("#queryMonthPicker")?.value || localDate().slice(0, 7);
+}
+
 function selectedDate() {
   return $("#datePicker").value || localDate();
 }
@@ -452,6 +482,8 @@ function syncDateLabels() {
   $("#monthPickerButton").textContent = formatMonthLabel($("#monthPicker").value);
   $("#datePickerButton").textContent = formatDateLabel($("#datePicker").value);
   $("#transactionDateButton").textContent = formatDateLabel($("#transactionDate").value);
+  const queryMonthButton = $("#queryMonthPickerButton");
+  if (queryMonthButton) queryMonthButton.textContent = formatMonthLabel($("#queryMonthPicker")?.value);
 }
 
 function openCalendar(mode, targetId) {
@@ -525,6 +557,7 @@ function chooseCalendarValue(value) {
   closeCalendar();
   if (calendarState.targetId === "monthPicker") render();
   if (calendarState.targetId === "datePicker") renderDay();
+  if (calendarState.targetId === "queryMonthPicker") renderQueryRecords();
 }
 
 function moveCalendar(amount) {
@@ -897,13 +930,129 @@ function renderDay() {
    查詢紀錄
    ========================= */
 
+function updatePaymentSelectOptions(selectedPayment = "") {
+  const paymentSelect = $("#payment");
+  const querySelect = $("#queryPayment");
+  if (paymentSelect) {
+    const keep = selectedPayment || paymentSelect.value;
+    const options = [...paymentMethods];
+    if (keep && !options.includes(keep)) options.push(keep);
+    paymentSelect.innerHTML = options.map(method => `<option value="${escapeHTML(method)}">${escapeHTML(method)}</option>`).join("");
+    if (keep) paymentSelect.value = keep;
+  }
+  if (querySelect) {
+    const keep = querySelect.value;
+    const options = [...new Set([...paymentMethods, ...records.map(record => record.payment).filter(value => typeof value === "string" && value)])];
+    querySelect.innerHTML = `<option value="">全部付款方式</option>` + options.map(method => `<option value="${escapeHTML(method)}">${escapeHTML(method)}</option>`).join("");
+    if (keep && options.includes(keep)) querySelect.value = keep;
+  }
+}
+
+function renderPaymentMethodsSettings() {
+  const list = $("#paymentMethodList");
+  if (!list) return;
+  list.innerHTML = paymentMethods.map((method, index) => `
+    <div class="payment-method-row">
+      <span>${escapeHTML(method)}</span>
+      <div class="payment-method-actions">
+        <button type="button" data-payment-edit="${index}" aria-label="修改${escapeHTML(method)}">修改</button>
+        <button type="button" data-payment-delete="${index}" aria-label="刪除${escapeHTML(method)}" ${method === "其他" ? "disabled" : ""}>刪除</button>
+      </div>
+    </div>`).join("");
+}
+
+function addPaymentMethod() {
+  const input = $("#newPaymentMethodInput");
+  const name = input.value.trim();
+  const feedback = $("#paymentMethodFeedback");
+  if (!name) { feedback.textContent = "請先輸入付款方式名稱。"; return; }
+  if (paymentMethods.some(method => method.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+    feedback.textContent = "這個付款方式已經存在。";
+    return;
+  }
+  const previous = [...paymentMethods];
+  paymentMethods.push(name);
+  if (!savePaymentMethods()) { paymentMethods = previous; return; }
+  input.value = "";
+  feedback.textContent = "已新增付款方式。";
+  updatePaymentSelectOptions();
+  renderPaymentMethodsSettings();
+  renderPaymentPie(getMonthRecords());
+}
+
+function handlePaymentMethodActions(event) {
+  const editButton = event.target.closest("[data-payment-edit]");
+  const deleteButton = event.target.closest("[data-payment-delete]");
+  if (editButton) {
+    const index = Number(editButton.dataset.paymentEdit);
+    const oldName = paymentMethods[index];
+    if (!oldName) return;
+    const nextName = window.prompt("修改付款方式名稱：", oldName);
+    if (nextName === null) return;
+    const name = nextName.trim();
+    if (!name) { alert("付款方式名稱不可空白。"); return; }
+    if (paymentMethods.some((method, i) => i !== index && method.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      alert("這個付款方式名稱已經存在。");
+      return;
+    }
+    const previous = [...paymentMethods];
+    paymentMethods[index] = name;
+    if (!savePaymentMethods()) { paymentMethods = previous; return; }
+    $("#paymentMethodFeedback").textContent = "已修改名稱；過去的紀錄維持原樣。";
+  }
+  if (deleteButton) {
+    const index = Number(deleteButton.dataset.paymentDelete);
+    const name = paymentMethods[index];
+    if (!name || name === "其他") return;
+    if (!window.confirm(`確定刪除「${name}」？過去使用此付款方式的紀錄會保留原名稱。`)) return;
+    const previous = [...paymentMethods];
+    paymentMethods = paymentMethods.filter((_, i) => i !== index);
+    if (!savePaymentMethods()) { paymentMethods = previous; return; }
+    $("#paymentMethodFeedback").textContent = "已刪除付款方式；過去的紀錄不受影響。";
+  }
+  updatePaymentSelectOptions();
+  renderPaymentMethodsSettings();
+  renderPaymentPie(getMonthRecords());
+}
+
+const ANNOUNCEMENTS = [{ id: "v2.3-2026-11-01", title: "V2.3 功能更新公告" }];
+
+function getReadAnnouncementIds() {
+  try {
+    const value = JSON.parse(localStorage.getItem(ANNOUNCEMENT_READ_STORAGE_KEY) || "[]");
+    return Array.isArray(value) ? value.filter(item => typeof item === "string") : [];
+  } catch { return []; }
+}
+
+function updateAnnouncementBadge() {
+  const dot = $("#announcementDot");
+  if (dot) dot.hidden = ANNOUNCEMENTS.every(item => getReadAnnouncementIds().includes(item.id));
+}
+
+function openAnnouncementDialog() {
+  const dialog = $("#announcementDialog");
+  if (!dialog) return;
+  dialog.showModal();
+  const readIds = new Set(getReadAnnouncementIds());
+  ANNOUNCEMENTS.forEach(item => readIds.add(item.id));
+  try {
+    localStorage.setItem(ANNOUNCEMENT_READ_STORAGE_KEY, JSON.stringify([...readIds]));
+  } catch (error) {
+    console.error("儲存公告已讀狀態失敗：", error);
+  }
+  updateAnnouncementBadge();
+}
+
 function renderQueryRecords() {
   const list = $("#queryRecordsList");
   const count = $("#queryRecordCount");
   const monthLabel = $("#queryMonthLabel");
   if (!list || !count || !monthLabel) return;
 
-  monthLabel.textContent = currentMonth();
+  const selectedMonth = queryMonth();
+  monthLabel.textContent = formatMonthLabel(selectedMonth);
+  const queryMonthButton = $("#queryMonthPickerButton");
+  if (queryMonthButton) queryMonthButton.textContent = formatMonthLabel(selectedMonth);
   const minText = $("#queryAmountMin")?.value ?? "";
   const maxText = $("#queryAmountMax")?.value ?? "";
   const minAmount = minText === "" ? null : Number(minText);
@@ -911,7 +1060,7 @@ function renderQueryRecords() {
   const keyword = ($("#queryNote")?.value ?? "").trim().toLocaleLowerCase();
   const payment = $("#queryPayment")?.value ?? "";
 
-  const results = getMonthRecords().filter((record) => {
+  const results = records.filter(record => typeof record.date === "string" && record.date.startsWith(selectedMonth)).filter((record) => {
     const amount = Number(record.amount) || 0;
     if (minAmount !== null && Number.isFinite(minAmount) && amount < minAmount) return false;
     if (maxAmount !== null && Number.isFinite(maxAmount) && amount > maxAmount) return false;
@@ -1179,11 +1328,12 @@ function renderPaymentPie(monthRecords = getMonthRecords()) {
 
   const totals = {};
   monthRecords.filter((record) => record.type === "expense").forEach((record) => {
-    const method = paymentMethods.includes(record.payment) ? record.payment : "其他";
+    const method = typeof record.payment === "string" && record.payment ? record.payment : "其他";
     totals[method] = (totals[method] || 0) + (Number(record.amount) || 0);
   });
 
-  const entries = paymentMethods.map((method, index) => ({
+  const methodsForChart = [...new Set([...paymentMethods, ...Object.keys(totals)])];
+  const entries = methodsForChart.map((method, index) => ({
     method, amount: totals[method] || 0, color: chartColors[index % chartColors.length]
   })).filter((item) => item.amount > 0);
   const total = entries.reduce((result, item) => result + item.amount, 0);
@@ -1293,8 +1443,10 @@ function openForm(record = null) {
 
   if (record) {
     updateCategoryOptions(record.category);
+    updatePaymentSelectOptions(record.payment || paymentMethods[0]);
     $("#payment").value = record.payment || paymentMethods[0];
   } else {
+    updatePaymentSelectOptions(paymentMethods[0]);
     $("#payment").value = paymentMethods[0];
   }
 
@@ -1492,7 +1644,7 @@ function importBackup(file) {
       if (hasBudgets && !isValidBackupBudgets(backup.budgets)) throw new Error("備份內的預算資料格式不正確，原資料未更動");
       if (hasCalendarEvents && (!backup.calendarEvents || typeof backup.calendarEvents!=="object" || Array.isArray(backup.calendarEvents) || !Object.values(backup.calendarEvents).every(v=>typeof v==="string"))) throw new Error("備份內的行事曆資料格式不正確，原資料未更動");
       if (hasCalendarCompleted && (!backup.calendarCompleted || typeof backup.calendarCompleted!=="object" || Array.isArray(backup.calendarCompleted) || !Object.values(backup.calendarCompleted).every(v=>Array.isArray(v)&&v.every(x=>typeof x==="boolean")))) throw new Error("備份內的行程完成狀態格式不正確，原資料未更動");
-      const importedRecords = hasRecords ? imported.map(record=>({id:record.id,type:record.type,amount:Math.round(Number(record.amount)*100)/100,date:record.date,category:record.category,payment:paymentMethods.includes(record.payment)?record.payment:"其他",note:typeof record.note==="string"?record.note:"",createdAt:Number(record.createdAt)||0})) : records;
+      const importedRecords = hasRecords ? imported.map(record=>({id:record.id,type:record.type,amount:Math.round(Number(record.amount)*100)/100,date:record.date,category:record.category,payment:typeof record.payment==="string"?record.payment:"其他",note:typeof record.note==="string"?record.note:"",createdAt:Number(record.createdAt)||0})) : records;
       const importedBudgets = hasBudgets ? backup.budgets : budgets;
       const importedEvents = hasCalendarEvents ? backup.calendarEvents : plannerEvents;
       const importedCompleted = hasCalendarCompleted ? backup.calendarCompleted : plannerCompleted;
@@ -1988,17 +2140,13 @@ function initialize() {
   const today = localDate();
 
   $("#monthPicker").value = today.slice(0, 7);
+  $("#queryMonthPicker").value = today.slice(0, 7);
   $("#datePicker").value = today;
   $("#transactionDate").value = today;
   syncDateLabels();
 
-  $("#payment").innerHTML = paymentMethods.map((method) =>
-    `<option value="${escapeHTML(method)}">${escapeHTML(method)}</option>`
-  ).join("");
-
-  $("#queryPayment").innerHTML = `<option value="">全部付款方式</option>` + paymentMethods.map((method) =>
-    `<option value="${escapeHTML(method)}">${escapeHTML(method)}</option>`
-  ).join("");
+  updatePaymentSelectOptions(paymentMethods[0]);
+  renderPaymentMethodsSettings();
 
   updateCategoryOptions();
 
@@ -2049,6 +2197,7 @@ function initialize() {
 
   // 自訂日期／月份選擇器，避免 iOS 原生 date/month 控制項觸發縮放。
   $("#monthPickerButton").addEventListener("click", () => openCalendar("month", "monthPicker"));
+  $("#queryMonthPickerButton").addEventListener("click", () => openCalendar("month", "queryMonthPicker"));
   $("#datePickerButton").addEventListener("click", () => openCalendar("date", "datePicker"));
   $("#transactionDateButton").addEventListener("click", () => openCalendar("date", "transactionDate"));
   $("#calendarPrev").addEventListener("click", () => moveCalendar(-1));
@@ -2068,6 +2217,9 @@ function initialize() {
     $(selector).addEventListener("input", renderQueryRecords);
     $(selector).addEventListener("change", renderQueryRecords);
   });
+  $("#addPaymentMethodBtn")?.addEventListener("click", addPaymentMethod);
+  $("#paymentMethodList")?.addEventListener("click", handlePaymentMethodActions);
+
   $("#clearQueryBtn").addEventListener("click", () => {
     $("#queryAmountMin").value = "";
     $("#queryAmountMax").value = "";
@@ -2127,6 +2279,15 @@ function initialize() {
     if (event.target.closest("#resetAllBtn")) resetAllData();
   });
 
+  // 公告按鈕：開啟視窗時即將目前公告標記為已讀。
+  $("#announcementBtn")?.addEventListener("click", openAnnouncementDialog);
+  $("#closeAnnouncement")?.addEventListener("click", () => $("#announcementDialog")?.close());
+  $("#closeAnnouncementFooter")?.addEventListener("click", () => $("#announcementDialog")?.close());
+  $("#announcementDialog")?.addEventListener("click", event => {
+    if (event.target === event.currentTarget) event.currentTarget.close();
+  });
+  updateAnnouncementBadge();
+
   // 點擊版本號查看更新紀錄。
   const changelogDialog = $("#changelogDialog");
   $("#versionBtn")?.addEventListener("click", () => changelogDialog?.showModal());
@@ -2142,6 +2303,7 @@ function initialize() {
 
   // 初次渲染與側邊選單。
   render();
+  syncDateLabels();
   initializeMenu();
 }
 
