@@ -955,7 +955,7 @@ function renderPaymentMethodsSettings() {
     <div class="payment-method-row">
       <span>${escapeHTML(method)}</span>
       <div class="payment-method-actions">
-        <button type="button" data-payment-edit="${index}" aria-label="修改${escapeHTML(method)}">修改</button>
+        <button type="button" data-payment-edit="${index}" aria-label="修改${escapeHTML(method)}" ${method === "其他" ? "disabled" : ""}>修改</button>
         <button type="button" data-payment-delete="${index}" aria-label="刪除${escapeHTML(method)}" ${method === "其他" ? "disabled" : ""}>刪除</button>
       </div>
     </div>`).join("");
@@ -1047,10 +1047,10 @@ function renderQueryRecords() {
   const list = $("#queryRecordsList");
   const count = $("#queryRecordCount");
   const monthLabel = $("#queryMonthLabel");
-  if (!list || !count || !monthLabel) return;
+  if (!list || !count) return;
 
   const selectedMonth = queryMonth();
-  monthLabel.textContent = formatMonthLabel(selectedMonth);
+  if (monthLabel) monthLabel.textContent = formatMonthLabel(selectedMonth);
   const queryMonthButton = $("#queryMonthPickerButton");
   if (queryMonthButton) queryMonthButton.textContent = formatMonthLabel(selectedMonth);
   const minText = $("#queryAmountMin")?.value ?? "";
