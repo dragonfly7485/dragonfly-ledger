@@ -2790,3 +2790,16 @@ dialog select {
 .category-icon-option { display: grid; place-items: center; aspect-ratio: 1; min-width: 0; padding: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-soft, var(--card)); color: var(--text); font-size: 24px; cursor: pointer; }
 .category-icon-option.selected { border: 2px solid var(--green); background: var(--green-light); }
 .category-icon-option:active { transform: scale(.95); }
+
+
+/* 自訂分類 Emoji 輸入 */
+.category-add-fields { display: grid; grid-template-columns: minmax(0,1fr) 58px auto; gap: 8px; align-items: center; }
+.category-add-fields input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 42px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--card); color: var(--text); }
+.category-add-fields .category-emoji-input { padding: 6px; text-align: center; font-size: 21px; }
+.category-add-fields button { width: auto; min-width: 64px; min-height: 42px; margin: 0; padding: 8px 12px; }
+.category-emoji-hint { margin: 7px 0 12px; font-size: 11px; }
+.category-icon-edit { min-width: 68px; }
+@media (max-width: 360px) {
+  .category-add-fields { grid-template-columns: minmax(0,1fr) 48px auto; gap: 6px; }
+  .category-add-fields button { min-width: 54px; padding-inline: 8px; }
+}
