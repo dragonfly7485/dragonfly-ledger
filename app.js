@@ -826,10 +826,10 @@ function renderCategorySettings() {
   if (!list) return;
   list.innerHTML = categories[categorySettingsType].map(name => {
     const icon = categoryIcons[name] || "🏷️";
-    const iconAction = `<button class="category-icon-edit" type="button" data-category-icon="${escapeHTML(name)}" aria-label="更換${escapeHTML(name)}圖示">${icon} 圖示</button>`;
+    const editAction = `<button class="payment-method-delete" type="button" data-category-edit="${escapeHTML(name)}" aria-label="編輯${escapeHTML(name)}">編輯</button>`;
     const actions = name === "其他"
-      ? `<div class="category-settings-actions">${iconAction}<span class="payment-method-default category-default">預設</span></div>`
-      : `<div class="category-settings-actions">${iconAction}<button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button></div>`;
+      ? `<div class="category-settings-actions"><span class="payment-method-default category-default">預設</span></div>`
+      : `<div class="category-settings-actions">${editAction}<button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button></div>`;
     return `<div class="payment-method-row category-settings-row"><span class="category-settings-name"><span class="category-settings-preview" aria-hidden="true">${icon}</span>${escapeHTML(name)}</span>${actions}</div>`;
   }).join("");
   document.querySelectorAll("[data-category-type]").forEach(button => {
@@ -898,6 +898,48 @@ function addCategory() {
   if (feedback) feedback.textContent = "已新增分類。";
   renderCategorySettings(); updateCategoryOptions(); renderMonth();
 }
+function editCategory(name) {
+  if (!categories[categorySettingsType].includes(name) || name === "其他") return;
+  const nextName = window.prompt("修改分類名稱：", name);
+  if (nextName === null) return;
+  const trimmedName = nextName.trim();
+  if (!trimmedName) { alert("分類名稱不能空白。"); return; }
+  if (trimmedName !== name && categories[categorySettingsType].includes(trimmedName)) {
+    alert("這個分類名稱已經存在。");
+    return;
+  }
+  const currentIcon = categoryIcons[name] || "🏷️";
+  const nextIcon = window.prompt("修改分類 Emoji（留空保留原圖示）：", currentIcon);
+  if (nextIcon === null) return;
+  const icon = firstCategoryEmoji(nextIcon) || currentIcon;
+  const list = categories[categorySettingsType];
+  const index = list.indexOf(name);
+  list[index] = trimmedName;
+  records.forEach(record => {
+    if (record.type === categorySettingsType && record.category === name) record.category = trimmedName;
+  });
+  if (categorySettingsType === "expense") {
+    Object.values(budgets).forEach(month => {
+      if (month?.categories && Object.prototype.hasOwnProperty.call(month.categories, name)) {
+        month.categories[trimmedName] = month.categories[name];
+        delete month.categories[name];
+      }
+    });
+  }
+  if (trimmedName !== name) delete categoryIcons[name];
+  categoryIcons[trimmedName] = icon;
+  saveCategories();
+  saveCategoryIcons();
+  saveRecords();
+  saveBudgets();
+  $("#categorySettingsFeedback").textContent = "分類已更新。";
+  renderCategorySettings();
+  updateCategoryOptions();
+  renderMonth();
+  render();
+  renderBudget();
+}
+
 function handleCategoryActions(event) {
   const button = event.target.closest("[data-category-delete]");
   if (!button) return;
