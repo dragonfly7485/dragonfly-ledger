@@ -2843,3 +2843,24 @@ dialog select {
 }
 .category-edit-dialog .form-error { min-height: 0; }
 .category-edit-dialog .form-error:empty { display: none; }
+
+
+/* 分類編輯：名稱與 Emoji 並排 */
+.category-edit-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  align-items: end;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+.category-edit-field { display: grid; gap: 7px; min-width: 0; }
+.category-edit-field .field-label { margin: 0; }
+.category-edit-dialog .category-edit-fields input { min-width: 0; }
+.category-edit-dialog .category-edit-emoji-input {
+  padding: 8px 5px;
+  font-size: 23px;
+  text-align: center;
+}
+@media (max-width: 350px) {
+  .category-edit-fields { grid-template-columns: minmax(0, 1fr) 76px; gap: 7px; }
+}
