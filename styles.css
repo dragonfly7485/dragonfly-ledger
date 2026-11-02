@@ -2724,3 +2724,16 @@ dialog select {
 }
 .announcement-dialog-heading .announcement-back-button[hidden] { display: none !important; }
 .announcement-detail-view { padding-top: 0; }
+
+
+/* 分類設定入口與分類管理 */
+.category-settings-tabs { display: flex; gap: 8px; margin: 14px 0; }
+.category-settings-tab { flex: 1; min-height: 40px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-soft, var(--card)); color: var(--muted); font: inherit; font-weight: 650; }
+.category-settings-tab.active { border-color: var(--green); background: var(--green); color: #fff; }
+.category-settings .payment-method-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.category-settings .payment-method-delete { min-height: 32px; padding: 5px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-soft, var(--card)); color: var(--muted); font: inherit; }
+.announcement-dialog-heading { display: flex; align-items: center; gap: 10px; }
+.announcement-dialog-heading #announcementTitle[hidden] { display: none !important; }
+.announcement-dialog-heading .announcement-back-button { position: static; flex: 0 0 34px; width: 34px; min-height: 34px; margin: 0 0 0 auto; padding: 0; }
+.announcement-dialog-heading #closeAnnouncement[hidden] { display: none !important; }
+.announcement-dialog-heading .close-button { margin-left: auto; }
