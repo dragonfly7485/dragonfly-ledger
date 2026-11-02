@@ -2749,3 +2749,27 @@ dialog select {
 
 /* 公告詳細頁：標題靠左，右上角保留關閉按鈕 */
 .announcement-dialog-heading .announcement-back-button { margin-left: auto; }
+
+
+/* 分類與付款設定：預設標籤沿用刪除按鈕外觀，保留原文字顏色 */
+.payment-method-default {
+  display: inline-flex;
+  min-height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-soft, var(--card));
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+.category-settings .payment-method-default {
+  color: var(--green);
+  font-weight: 700;
+}
+.settings-help:empty {
+  display: none;
+}
