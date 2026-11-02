@@ -13,7 +13,7 @@
   <title>蜻蜓牌記帳本</title>
 
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./styles.css?v=20261102-26">
+  <link rel="stylesheet" href="./styles.css?v=20261102-27">
 </head>
 
 <body data-page="home">
@@ -575,18 +575,17 @@
   </dialog>
 
   <dialog id="announcementDialog" class="changelog-dialog announcement-dialog" aria-labelledby="announcementTitle">
-    <div class="dialog-heading"><h2 id="announcementTitle">公告中心</h2><button id="closeAnnouncement" class="close-button" type="button" aria-label="關閉公告">×</button></div>
+    <div class="dialog-heading announcement-dialog-heading"><h2 id="announcementTitle">公告中心</h2><button id="closeAnnouncement" class="close-button" type="button" aria-label="關閉公告">×</button></div>
     <section id="announcementListView" class="announcement-list-view">
       <p class="announcement-intro">查看蜻蜓牌記帳本的最新消息與歷史公告。</p>
       <div id="announcementList" class="announcement-list" aria-label="公告列表"></div>
     </section>
     <section id="announcementDetailView" class="announcement-detail-view" hidden>
-      <button id="announcementBack" class="announcement-back-button" type="button">‹ 返回公告列表</button>
+      <button id="announcementBack" class="announcement-back-button" type="button" aria-label="返回公告列表">‹</button>
       <div class="announcement-detail-meta"><span id="announcementDetailDate"></span></div>
       <h3 id="announcementDetailTitle" class="announcement-detail-title"></h3>
       <div id="announcementDetailBody" class="announcement-detail-body"></div>
     </section>
-    <div class="changelog-footer"><button id="closeAnnouncementFooter" class="cancel-button" type="button">關閉</button></div>
   </dialog>
 
   <dialog id="changelogDialog" class="changelog-dialog" aria-labelledby="changelogTitle">
@@ -869,7 +868,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261102-26" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261102-27" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
