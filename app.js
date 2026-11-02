@@ -999,8 +999,8 @@ const ANNOUNCEMENTS = [
   {
     id: "v2.3.1-2026-11-02",
     type: "update",
-    version: "V2.3.1",
-    title: "更新公告 V2.3.1",
+    version: "v2.3.1",
+    title: "更新公告 v2.3.1",
     date: "2026/11/02",
     summary: "公告中心介面調整與分類設定規劃",
     content: [
@@ -1012,8 +1012,8 @@ const ANNOUNCEMENTS = [
   {
     id: "v2.3-2026-11-01",
     type: "update",
-    version: "V2.3",
-    title: "更新公告 V2.3",
+    version: "v2.3",
+    title: "更新公告 v2.3",
     date: "2026/11/01",
     summary: "查詢紀錄與設定頁調整",
     content: [
@@ -1047,13 +1047,11 @@ function renderAnnouncementList() {
   const list = $("#announcementList");
   if (!list) return;
   const readIds = new Set(getReadAnnouncementIds());
-  const icons = { update: "↻", system: "⚙", general: "ⓘ", event: "✦" };
   list.innerHTML = ANNOUNCEMENTS.map(item => {
     const label = ANNOUNCEMENT_TYPE_LABELS[item.type] || "一般公告";
     const title = item.type === "update" ? `${label} ${item.version || ""}`.trim() : label;
     return `<button class="announcement-item" type="button" data-announcement-id="${item.id}">
-      <span class="announcement-item-icon" aria-hidden="true">${icons[item.type] || "ⓘ"}</span>
-      <span class="announcement-item-copy"><strong>${title}</strong><small>${item.summary}</small></span>
+      <span class="announcement-item-copy"><strong>${item.type === "update" ? `<span class="announcement-type-badge">更新</span>` : ""}${title}</strong><small>${item.summary}</small></span>
       <span class="announcement-item-meta"><time>${item.date}</time><span aria-hidden="true">›</span></span>
       ${readIds.has(item.id) ? "" : '<i class="announcement-unread-dot" aria-label="未讀"></i>'}
     </button>`;
@@ -1082,6 +1080,7 @@ function renderAnnouncementDetail(id) {
   });
   list.hidden = true;
   detail.hidden = false;
+  $("#announcementTitle").hidden = true;
 }
 
 function openAnnouncementDialog() {
@@ -1090,6 +1089,7 @@ function openAnnouncementDialog() {
   renderAnnouncementList();
   $("#announcementListView").hidden = false;
   $("#announcementDetailView").hidden = true;
+  $("#announcementTitle").hidden = false;
   dialog.showModal();
   const readIds = new Set(getReadAnnouncementIds());
   ANNOUNCEMENTS.forEach(item => readIds.add(item.id));
@@ -2390,6 +2390,7 @@ function initialize() {
   $("#announcementBack")?.addEventListener("click", () => {
     $("#announcementDetailView").hidden = true;
     $("#announcementListView").hidden = false;
+    $("#announcementTitle").hidden = false;
   });
   $("#announcementDialog")?.addEventListener("click", event => {
     if (event.target === event.currentTarget) event.currentTarget.close();
