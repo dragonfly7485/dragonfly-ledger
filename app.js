@@ -848,27 +848,6 @@ function firstCategoryEmoji(value) {
   return [...text][0] || "";
 }
 
-function editCategoryIcon(name) {
-  if (!categories[categorySettingsType].includes(name)) return;
-  const currentIcon = categoryIcons[name] || "🏷️";
-  const nextIcon = window.prompt(`輸入「${name}」想使用的 Emoji：`, currentIcon);
-  if (nextIcon === null) return;
-  const icon = firstCategoryEmoji(nextIcon);
-  if (!icon) {
-    alert("請輸入一個 Emoji。");
-    return;
-  }
-  const previous = categoryIcons[name];
-  categoryIcons[name] = icon;
-  if (!saveCategoryIcons()) {
-    if (previous === undefined) delete categoryIcons[name];
-    else categoryIcons[name] = previous;
-    return;
-  }
-  renderCategorySettings();
-  render();
-  renderBudget();
-}
 
 function addCategory() {
   const input = $("#newCategoryInput");
