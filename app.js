@@ -10,10 +10,30 @@ const PLANNER_EVENTS_STORAGE_KEY = "dragonfly-ledger-calendar-v1";
 const PLANNER_COMPLETED_STORAGE_KEY = "dragonfly-ledger-calendar-completed-v1";
 const CARRIER_PATTERN = /^\/[A-Z0-9.+-]{7}$/;
 
-const categories = {
+const CATEGORY_STORAGE_KEY = "dragonfly-ledger-categories-v1";
+const DEFAULT_CATEGORIES = {
   expense: ["飲食", "交通", "購物", "娛樂", "生活", "學習", "醫療", "其他"],
   income: ["薪資", "零用錢", "獎金", "投資", "退款", "其他"]
 };
+function loadCategories() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CATEGORY_STORAGE_KEY) || "null");
+    if (!saved || typeof saved !== "object") return { expense: [...DEFAULT_CATEGORIES.expense], income: [...DEFAULT_CATEGORIES.income] };
+    const result = {};
+    for (const type of ["expense", "income"]) {
+      const values = Array.isArray(saved[type]) ? saved[type] : DEFAULT_CATEGORIES[type];
+      result[type] = [...new Set(values.filter(value => typeof value === "string" && value.trim() && value.trim() !== "其他").map(value => value.trim()))];
+      result[type].push("其他");
+    }
+    return result;
+  } catch { return { expense: [...DEFAULT_CATEGORIES.expense], income: [...DEFAULT_CATEGORIES.income] }; }
+}
+const categories = loadCategories();
+let categorySettingsType = "expense";
+function saveCategories() {
+  try { localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories)); return true; }
+  catch { alert("分類設定儲存失敗，請確認瀏覽器儲存空間。"); return false; }
+}
 
 const categoryIcons = {
   飲食: "🍜",
@@ -783,6 +803,41 @@ function expenseByCategory(monthRecords) {
    分類選項
    ========================= */
 
+function renderCategorySettings() {
+  const list = $("#categorySettingsList");
+  if (!list) return;
+  list.innerHTML = categories[categorySettingsType].map(name => `<div class="payment-method-row"><span>${escapeHTML(name)}</span>${name === "其他" ? '<span class="settings-value">預設</span>' : `<button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button>`}</div>`).join("");
+  document.querySelectorAll("[data-category-type]").forEach(button => {
+    const active = button.dataset.categoryType === categorySettingsType;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+function addCategory() {
+  const input = $("#newCategoryInput");
+  const name = input?.value.trim();
+  const feedback = $("#categorySettingsFeedback");
+  if (!name) { if (feedback) feedback.textContent = "請先輸入分類名稱。"; return; }
+  if (categories[categorySettingsType].includes(name)) { if (feedback) feedback.textContent = "這個分類已經存在。"; return; }
+  categories[categorySettingsType].splice(-1, 0, name);
+  if (!saveCategories()) { categories[categorySettingsType].splice(categories[categorySettingsType].indexOf(name), 1); return; }
+  input.value = "";
+  if (feedback) feedback.textContent = "已新增分類。";
+  renderCategorySettings(); updateCategoryOptions(); renderMonth();
+}
+function handleCategoryActions(event) {
+  const button = event.target.closest("[data-category-delete]");
+  if (!button) return;
+  const name = button.dataset.categoryDelete;
+  if (!name || name === "其他") return;
+  const index = categories[categorySettingsType].indexOf(name);
+  if (index < 0) return;
+  categories[categorySettingsType].splice(index, 1);
+  if (!saveCategories()) { categories[categorySettingsType].splice(index, 0, name); return; }
+  $("#categorySettingsFeedback").textContent = "已刪除分類，過去的記帳紀錄會保留原資料。";
+  renderCategorySettings(); updateCategoryOptions(); renderMonth();
+}
+
 function updateCategoryOptions(selectedCategory = "") {
   const categorySelect = $("#category");
   if (!categorySelect) return;
@@ -1082,6 +1137,7 @@ function renderAnnouncementDetail(id) {
   detail.hidden = false;
   $("#announcementTitle").hidden = true;
   $("#announcementBack").hidden = false;
+  $("#closeAnnouncement").hidden = true;
 }
 
 function openAnnouncementDialog() {
@@ -1092,6 +1148,7 @@ function openAnnouncementDialog() {
   $("#announcementDetailView").hidden = true;
   $("#announcementTitle").hidden = false;
   $("#announcementBack").hidden = true;
+  $("#closeAnnouncement").hidden = false;
   dialog.showModal();
   const readIds = new Set(getReadAnnouncementIds());
   ANNOUNCEMENTS.forEach(item => readIds.add(item.id));
@@ -2202,9 +2259,10 @@ function initializeSettingsNavigation() {
   const panels = {
     carrier: $("#settingsPanel-carrier"),
     payments: $("#settingsPanel-payments"),
-    data: $("#settingsPanel-data")
+    data: $("#settingsPanel-data"),
+    categories: $("#settingsPanel-categories")
   };
-  const names = { carrier: "電子發票載具", payments: "付款方式", data: "資料管理" };
+  const names = { carrier: "電子發票載具", payments: "付款方式", data: "資料管理", categories: "分類設定" };
 
   function showSettingsHome() {
     general.hidden = false;
@@ -2225,6 +2283,7 @@ function initializeSettingsNavigation() {
     section.dataset.settingsPanel = name;
     if (name === "carrier") renderCarrierSettings();
     if (name === "payments") renderPaymentMethodsSettings();
+    if (name === "categories") renderCategorySettings();
   }
 
   section.querySelectorAll("[data-settings-open]").forEach(button => {
@@ -2320,6 +2379,9 @@ function initialize() {
     $(selector).addEventListener("change", renderQueryRecords);
   });
   $("#addPaymentMethodBtn")?.addEventListener("click", addPaymentMethod);
+  $("#addCategoryBtn")?.addEventListener("click", addCategory);
+  $("#categorySettingsList")?.addEventListener("click", handleCategoryActions);
+  document.querySelectorAll("[data-category-type]").forEach(button => button.addEventListener("click", () => { categorySettingsType = button.dataset.categoryType; renderCategorySettings(); }));
   $("#paymentMethodList")?.addEventListener("click", handlePaymentMethodActions);
 
   $("#clearQueryBtn").addEventListener("click", () => {
