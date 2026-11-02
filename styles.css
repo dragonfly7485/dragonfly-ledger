@@ -2709,3 +2709,18 @@ dialog select {
 .announcement-detail-meta { margin-top: 2px; }
 
 .announcement-dialog-heading .close-button { margin-left: auto; }
+
+
+/* 修正公告詳細頁返回箭頭：與右上角關閉按鈕同列 */
+.announcement-dialog-heading { display: flex; align-items: center; gap: 10px; }
+.announcement-dialog-heading #announcementTitle[hidden] { display: none !important; }
+.announcement-dialog-heading .announcement-back-button {
+  position: static;
+  flex: 0 0 34px;
+  width: 34px;
+  min-height: 34px;
+  margin: 0;
+  padding: 0;
+}
+.announcement-dialog-heading .announcement-back-button[hidden] { display: none !important; }
+.announcement-detail-view { padding-top: 0; }
