@@ -35,21 +35,40 @@ function saveCategories() {
   catch { alert("分類設定儲存失敗，請確認瀏覽器儲存空間。"); return false; }
 }
 
+const CATEGORY_ICON_STORAGE_KEY = "dragonfly-ledger-category-icons-v1";
 const categoryIcons = {
-  飲食: "🍜",
-  交通: "🛵",
-  購物: "🛍️",
-  娛樂: "🎮",
-  生活: "🏠",
-  學習: "📚",
-  醫療: "💊",
-  薪資: "💼",
-  零用錢: "💵",
-  獎金: "🎁",
-  投資: "📈",
-  退款: "↩️",
-  其他: "🧾"
+  飲食: "🍜", 交通: "🛵", 購物: "🛍️", 娛樂: "🎮",
+  生活: "🏠", 學習: "📚", 醫療: "💊", 薪資: "💼",
+  零用錢: "💵", 獎金: "🎁", 投資: "📈", 退款: "↩️", 其他: "🧾"
 };
+try {
+  const savedCategoryIcons = JSON.parse(localStorage.getItem(CATEGORY_ICON_STORAGE_KEY) || "{}");
+  if (savedCategoryIcons && typeof savedCategoryIcons === "object" && !Array.isArray(savedCategoryIcons)) {
+    Object.entries(savedCategoryIcons).forEach(([name, icon]) => {
+      if (typeof name === "string" && typeof icon === "string" && icon.length <= 12) categoryIcons[name] = icon;
+    });
+  }
+} catch (error) { console.error("讀取分類圖示失敗：", error); }
+
+const CATEGORY_ICON_OPTIONS = [
+  { group: "常用", icons: ["🍜","🍔","🍕","🥗","🍱","☕","🧋","🍰","🍎","🥐","🍣","🍦"] },
+  { group: "交通", icons: ["🛵","🚗","🚕","🚌","🚆","🚲","✈️","⛽","🚇","🛳️"] },
+  { group: "購物", icons: ["🛍️","🛒","👕","👟","🎁","📱","💻","🧸","💄","🧴"] },
+  { group: "娛樂", icons: ["🎮","🎬","🎵","🎧","🎤","🎨","📷","🎟️","⚽","🏀"] },
+  { group: "生活", icons: ["🏠","🛏️","🪴","🐶","🐱","💡","🧹","🧺","🛠️","🧻"] },
+  { group: "學習", icons: ["📚","📖","✏️","🖊️","🎓","🧮","🔬","🧪","📝","💡"] },
+  { group: "醫療", icons: ["💊","🩺","🏥","🦷","🩹","❤️","🧘","🌡️"] },
+  { group: "金錢與其他", icons: ["💰","💵","💳","🏦","📈","💼","🧾","📦","⭐","🔖","🐉","🏷️"] }
+];
+function saveCategoryIcons() {
+  try {
+    localStorage.setItem(CATEGORY_ICON_STORAGE_KEY, JSON.stringify(categoryIcons));
+    return true;
+  } catch (error) {
+    alert("分類圖示儲存失敗，請確認瀏覽器儲存空間。");
+    return false;
+  }
+}
 
 let paymentMethods = loadPaymentMethods();
 
@@ -815,13 +834,54 @@ function expenseByCategory(monthRecords) {
 function renderCategorySettings() {
   const list = $("#categorySettingsList");
   if (!list) return;
-  list.innerHTML = categories[categorySettingsType].map(name => `<div class="payment-method-row"><span>${escapeHTML(name)}</span>${name === "其他" ? '<span class="payment-method-default category-default">預設</span>' : `<button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button>`}</div>`).join("");
+  list.innerHTML = categories[categorySettingsType].map(name => {
+    const icon = categoryIcons[name] || "🏷️";
+    const actions = name === "其他"
+      ? '<span class="payment-method-default category-default">預設</span>'
+      : `<div class="category-settings-actions"><button class="category-icon-edit" type="button" data-category-icon="${escapeHTML(name)}" aria-label="更換${escapeHTML(name)}圖示">${icon} 圖示</button><button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button></div>`;
+    return `<div class="payment-method-row category-settings-row"><span class="category-settings-name"><span class="category-settings-preview" aria-hidden="true">${icon}</span>${escapeHTML(name)}</span>${actions}</div>`;
+  }).join("");
   document.querySelectorAll("[data-category-type]").forEach(button => {
     const active = button.dataset.categoryType === categorySettingsType;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
 }
+let editingCategoryIconName = "";
+
+function openCategoryIconPicker(name) {
+  if (!categories[categorySettingsType].includes(name)) return;
+  editingCategoryIconName = name;
+  $("#categoryIconPickerTitle").textContent = `選擇「${name}」的圖示`;
+  const grid = $("#categoryIconPickerGrid");
+  if (!grid) return;
+  grid.innerHTML = CATEGORY_ICON_OPTIONS.map(group => `
+    <section class="category-icon-group">
+      <h4>${group.group}</h4>
+      <div class="category-icon-options">
+        ${group.icons.map(icon => `<button type="button" class="category-icon-option${(categoryIcons[name] || "🏷️") === icon ? " selected" : ""}" data-pick-category-icon="${icon}" aria-label="選擇圖示 ${icon}" aria-pressed="${(categoryIcons[name] || "🏷️") === icon}">${icon}</button>`).join("")}
+      </div>
+    </section>`).join("");
+  $("#categoryIconPickerDialog")?.showModal();
+}
+
+function chooseCategoryIcon(icon) {
+  if (!editingCategoryIconName || !CATEGORY_ICON_OPTIONS.some(group => group.icons.includes(icon))) return;
+  const name = editingCategoryIconName;
+  const previous = categoryIcons[name];
+  categoryIcons[name] = icon;
+  if (!saveCategoryIcons()) {
+    if (previous === undefined) delete categoryIcons[name];
+    else categoryIcons[name] = previous;
+    return;
+  }
+  $("#categoryIconPickerDialog")?.close();
+  editingCategoryIconName = "";
+  renderCategorySettings();
+  render();
+  renderBudget();
+}
+
 function addCategory() {
   const input = $("#newCategoryInput");
   const name = input?.value.trim();
@@ -842,7 +902,10 @@ function handleCategoryActions(event) {
   const index = categories[categorySettingsType].indexOf(name);
   if (index < 0) return;
   categories[categorySettingsType].splice(index, 1);
-  if (!saveCategories()) { categories[categorySettingsType].splice(index, 0, name); return; }
+  const previousIcon = categoryIcons[name];
+  delete categoryIcons[name];
+  if (!saveCategories()) { categories[categorySettingsType].splice(index, 0, name); if (previousIcon) categoryIcons[name] = previousIcon; return; }
+  saveCategoryIcons();
   $("#categorySettingsFeedback").textContent = "已刪除分類，過去的記帳紀錄會保留原資料。";
   renderCategorySettings(); updateCategoryOptions(); renderMonth();
 }
@@ -2393,7 +2456,20 @@ function initialize() {
   });
   $("#addPaymentMethodBtn")?.addEventListener("click", addPaymentMethod);
   $("#addCategoryBtn")?.addEventListener("click", addCategory);
-  $("#categorySettingsList")?.addEventListener("click", handleCategoryActions);
+  $("#categorySettingsList")?.addEventListener("click", (event) => {
+    const iconButton = event.target.closest("[data-category-icon]");
+    if (iconButton) { openCategoryIconPicker(iconButton.dataset.categoryIcon); return; }
+    handleCategoryActions(event);
+  });
+  $("#categoryIconPickerGrid")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-pick-category-icon]");
+    if (button) chooseCategoryIcon(button.dataset.pickCategoryIcon);
+  });
+  $("#closeCategoryIconPicker")?.addEventListener("click", () => $("#categoryIconPickerDialog")?.close());
+  $("#categoryIconPickerDialog")?.addEventListener("click", event => {
+    if (event.target === event.currentTarget) event.currentTarget.close();
+  });
+  $("#categoryIconPickerDialog")?.addEventListener("close", () => { editingCategoryIconName = ""; });
   document.querySelectorAll("[data-category-type]").forEach(button => button.addEventListener("click", () => { categorySettingsType = button.dataset.categoryType; renderCategorySettings(); }));
   $("#paymentMethodList")?.addEventListener("click", handlePaymentMethodActions);
 
