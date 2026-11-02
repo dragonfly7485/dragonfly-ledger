@@ -13,7 +13,7 @@
   <title>蜻蜓牌記帳本</title>
 
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./styles.css?v=20261101-25">
+  <link rel="stylesheet" href="./styles.css?v=20261102-26">
 </head>
 
 <body data-page="home">
@@ -468,7 +468,7 @@
           <h3>一般設定</h3>
           <div class="settings-row">
             <div><strong>應用程式</strong><p>蜻蜓牌記帳本</p></div>
-            <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.3</button>
+            <button id="versionBtn" class="settings-value version-button" type="button" aria-haspopup="dialog" aria-controls="changelogDialog">v2.3.1</button>
           </div>
           <div class="settings-row">
             <div><strong>記帳幣別</strong><p>新臺幣（TWD）</p></div><span class="settings-value">NT$</span>
@@ -575,15 +575,16 @@
   </dialog>
 
   <dialog id="announcementDialog" class="changelog-dialog announcement-dialog" aria-labelledby="announcementTitle">
-    <div class="dialog-heading"><h2 id="announcementTitle">公告</h2><button id="closeAnnouncement" class="close-button" type="button" aria-label="關閉公告">×</button></div>
-    <article class="announcement-entry">
-      <div class="announcement-entry-heading"><h3>V2.3 功能更新公告</h3><time datetime="2026-11-01">2026/11/01</time></div>
-      <ul>
-        <li>查詢紀錄新增年月選擇器，可直接切換想查詢的月份。</li>
-        <li>設定頁新增獨立的載具與付款方式入口。</li>
-        <li>新增付款方式管理，可新增、修改及刪除付款方式，舊紀錄維持原樣。</li>
-      </ul>
-    </article>
+    <div class="dialog-heading"><h2 id="announcementTitle">公告中心</h2><button id="closeAnnouncement" class="close-button" type="button" aria-label="關閉公告">×</button></div>
+    <section id="announcementListView" class="announcement-list-view">
+      <p class="announcement-intro">查看蜻蜓牌記帳本的最新消息與歷史公告。</p>
+      <div id="announcementList" class="announcement-list" aria-label="公告列表"></div>
+    </section>
+    <section id="announcementDetailView" class="announcement-detail-view" hidden>
+      <button id="announcementBack" class="announcement-back-button" type="button">‹ 返回公告列表</button>
+      <div class="announcement-detail-meta"><span id="announcementDetailDate"></span></div>
+      <div id="announcementDetailBody" class="announcement-detail-body"></div>
+    </section>
     <div class="changelog-footer"><button id="closeAnnouncementFooter" class="cancel-button" type="button">關閉</button></div>
   </dialog>
 
@@ -859,7 +860,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261101-25" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261102-26" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
