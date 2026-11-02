@@ -838,12 +838,21 @@ function renderCategorySettings() {
     button.setAttribute("aria-pressed", String(active));
   });
 }
+function firstCategoryEmoji(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (typeof Intl.Segmenter === "function") {
+    return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)][0]?.segment || "";
+  }
+  return [...text][0] || "";
+}
+
 function editCategoryIcon(name) {
   if (!categories[categorySettingsType].includes(name)) return;
   const currentIcon = categoryIcons[name] || "🏷️";
   const nextIcon = window.prompt(`輸入「${name}」想使用的 Emoji：`, currentIcon);
   if (nextIcon === null) return;
-  const icon = [...nextIcon.trim()][0] || "";
+  const icon = firstCategoryEmoji(nextIcon);
   if (!icon) {
     alert("請輸入一個 Emoji。");
     return;
@@ -864,7 +873,7 @@ function addCategory() {
   const input = $("#newCategoryInput");
   const iconInput = $("#newCategoryIconInput");
   const name = input?.value.trim();
-  const icon = [...(iconInput?.value.trim() || "")][0] || "🏷️";
+  const icon = firstCategoryEmoji(iconInput?.value) || "🏷️";
   const feedback = $("#categorySettingsFeedback");
   if (!name) { if (feedback) feedback.textContent = "請先輸入分類名稱。"; return; }
   if (categories[categorySettingsType].includes(name)) { if (feedback) feedback.textContent = "這個分類已經存在。"; return; }
