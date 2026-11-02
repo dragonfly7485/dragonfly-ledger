@@ -815,7 +815,7 @@ function expenseByCategory(monthRecords) {
 function renderCategorySettings() {
   const list = $("#categorySettingsList");
   if (!list) return;
-  list.innerHTML = categories[categorySettingsType].map(name => `<div class="payment-method-row"><span>${escapeHTML(name)}</span>${name === "其他" ? '<span class="settings-value">預設</span>' : `<button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button>`}</div>`).join("");
+  list.innerHTML = categories[categorySettingsType].map(name => `<div class="payment-method-row"><span>${escapeHTML(name)}</span>${name === "其他" ? '<span class="payment-method-default category-default">預設</span>' : `<button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button>`}</div>`).join("");
   document.querySelectorAll("[data-category-type]").forEach(button => {
     const active = button.dataset.categoryType === categorySettingsType;
     button.classList.toggle("active", active);
@@ -998,10 +998,10 @@ function renderPaymentMethodsSettings() {
   list.innerHTML = paymentMethods.map((method, index) => `
     <div class="payment-method-row">
       <span>${escapeHTML(method)}</span>
-      <div class="payment-method-actions">
-        <button type="button" data-payment-edit="${index}" aria-label="修改${escapeHTML(method)}" ${method === "其他" ? "disabled" : ""}>修改</button>
-        <button type="button" data-payment-delete="${index}" aria-label="刪除${escapeHTML(method)}" ${method === "其他" ? "disabled" : ""}>刪除</button>
-      </div>
+      ${method === "其他" ? '<span class="payment-method-default">預設</span>' : `<div class="payment-method-actions">
+        <button type="button" data-payment-edit="${index}" aria-label="修改${escapeHTML(method)}">修改</button>
+        <button type="button" data-payment-delete="${index}" aria-label="刪除${escapeHTML(method)}">刪除</button>
+      </div>`}
     </div>`).join("");
 }
 
