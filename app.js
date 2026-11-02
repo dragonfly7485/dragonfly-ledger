@@ -2382,7 +2382,6 @@ function initialize() {
   // 公告中心：列表中的每則公告都是獨立子入口，可返回公告列表。
   $("#announcementBtn")?.addEventListener("click", openAnnouncementDialog);
   $("#closeAnnouncement")?.addEventListener("click", () => $("#announcementDialog")?.close());
-  $("#closeAnnouncementFooter")?.addEventListener("click", () => $("#announcementDialog")?.close());
   $("#announcementList")?.addEventListener("click", event => {
     const item = event.target.closest("[data-announcement-id]");
     if (item) renderAnnouncementDetail(item.dataset.announcementId);
