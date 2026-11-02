@@ -1132,8 +1132,7 @@ function renderAnnouncementDetail(id) {
   const body = $("#announcementDetailBody");
   if (!list || !detail || !title || !date || !body) return;
   const label = ANNOUNCEMENT_TYPE_LABELS[item.type] || "一般公告";
-  const detailHeading = item.summary || item.title || label;
-  $("#announcementTitle").textContent = detailHeading;
+  $("#announcementTitle").textContent = label;
   $("#announcementTitle").hidden = false;
   title.hidden = true;
   date.textContent = item.date;
