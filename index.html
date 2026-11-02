@@ -13,7 +13,7 @@
   <title>蜻蜓牌記帳本</title>
 
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./styles.css?v=20261102-39">
+  <link rel="stylesheet" href="./styles.css?v=20261102-40">
 </head>
 
 <body data-page="home">
@@ -710,6 +710,25 @@
 
 
 
+
+  <!-- 分類編輯視窗 -->
+  <dialog id="categoryEditDialog" class="category-edit-dialog" aria-labelledby="categoryEditTitle">
+    <form id="categoryEditForm">
+      <div class="dialog-heading">
+        <h2 id="categoryEditTitle">編輯分類</h2>
+        <button id="categoryEditClose" class="close-button" type="button" aria-label="關閉">×</button>
+      </div>
+      <label class="field-label" for="categoryEditName">分類名稱</label>
+      <input id="categoryEditName" type="text" maxlength="20" autocomplete="off" placeholder="輸入分類名稱" required>
+      <label class="field-label" for="categoryEditIcon">分類 Emoji</label>
+      <input id="categoryEditIcon" class="category-edit-emoji-input" type="text" maxlength="12" autocomplete="off" placeholder="選擇 Emoji" required>
+      <p class="category-edit-hint">可直接輸入文字，或使用鍵盤的 Emoji 選擇器。</p>
+      <p id="categoryEditError" class="form-error" role="alert"></p>
+      <button class="save-button" type="submit">儲存</button>
+      <button id="categoryEditCancel" class="cancel-button" type="button">取消</button>
+    </form>
+  </dialog>
+
   <dialog id="transactionDialog">
     <form id="transactionForm">
       <div class="dialog-heading">
@@ -870,7 +889,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261102-39" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261102-40" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
