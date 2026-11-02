@@ -2605,3 +2605,61 @@ dialog select {
 #settingsGeneralBlock > h3 { margin-top: 0; }
 #settingsHomePanel { display: grid; gap: 10px; }
 #settingsHomePanel[hidden], #settingsGeneralBlock[hidden] { display: none !important; }
+
+
+/* v2.3.1：多類型公告中心與獨立公告詳細頁 */
+.announcement-dialog { width: min(92vw, 520px); }
+.announcement-list-view[hidden], .announcement-detail-view[hidden] { display: none !important; }
+.announcement-intro { margin: 0 0 14px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.announcement-list { display: grid; gap: 9px; }
+.announcement-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 72px;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.announcement-item:active { transform: scale(.99); }
+.announcement-item-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 12px;
+  background: var(--surface-soft, var(--card));
+  color: var(--accent, var(--text));
+  font-size: 21px;
+}
+.announcement-item-copy { display: grid; gap: 5px; min-width: 0; }
+.announcement-item-copy strong { font-size: 14px; line-height: 1.4; }
+.announcement-item-copy small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+.announcement-item-meta { display: grid; justify-items: end; gap: 4px; margin-left: auto; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.announcement-item-meta span { font-size: 23px; line-height: 1; }
+.announcement-unread-dot { position: absolute; top: 8px; right: 9px; width: 7px; height: 7px; border-radius: 50%; background: #d66a55; }
+.announcement-back-button {
+  min-height: 36px;
+  margin: 0 0 15px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft, var(--card));
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+}
+.announcement-detail-meta { margin-bottom: 7px; color: var(--muted); font-size: 12px; }
+.announcement-detail-title { margin: 0 0 12px; font-size: 19px; line-height: 1.4; }
+.announcement-detail-body { color: var(--muted); font-size: 14px; line-height: 1.8; }
+.announcement-detail-heading { margin: 0 0 9px; color: var(--text); font-size: 15px; }
+.announcement-detail-list { margin: 0; padding-left: 21px; }
+.announcement-detail-list li + li { margin-top: 8px; }
