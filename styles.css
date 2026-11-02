@@ -2866,51 +2866,57 @@ dialog select {
 }
 
 
-/* v2.3：設定子入口導覽列美化 */
+/* v2.3：設定子入口返回按鈕改為右上角純文字樣式 */
 .settings-section-heading {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 13px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 16px;
 }
-.settings-heading-copy { order: 1; }
+.settings-heading-copy {
+  order: 0;
+  min-width: 0;
+}
 .settings-heading-copy h2 { margin: 0; }
 .settings-back-button {
-  order: 0;
+  order: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 38px;
+  gap: 5px;
+  min-height: 36px;
   width: auto;
-  margin: 0;
-  padding: 0 14px 0 11px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-soft, var(--card));
+  flex: 0 0 auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--green);
-  font-size: 13px;
+  font: inherit;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1;
-  box-shadow: 0 2px 8px rgba(38, 63, 50, .07);
-  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+  box-shadow: none;
+  transition: opacity .18s ease;
   -webkit-tap-highlight-color: transparent;
 }
 .settings-back-button::before {
   content: "‹";
   display: inline-block;
   font-family: Arial, sans-serif;
-  font-size: 25px;
+  font-size: 23px;
   font-weight: 400;
-  line-height: .7;
+  line-height: .8;
   transform: translateY(-1px);
 }
 .settings-back-button:active {
-  transform: scale(.96);
-  background: var(--card);
+  transform: none;
+  background: transparent;
   box-shadow: none;
+  opacity: .58;
 }
 .settings-back-button[hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
