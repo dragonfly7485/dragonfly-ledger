@@ -2682,3 +2682,28 @@ dialog select {
   line-height: 1.35;
   letter-spacing: .02em;
 }
+
+
+/* v2.3.1：公告詳細頁使用左上返回箭頭，右上保留關閉按鈕 */
+.announcement-dialog { position: relative; }
+.announcement-dialog-heading { position: relative; }
+.announcement-detail-view { position: relative; padding-top: 38px; }
+.announcement-back-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  min-height: 34px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface-soft, var(--card));
+  color: var(--text);
+  font-size: 27px;
+  font-weight: 400;
+  line-height: 1;
+}
+.announcement-detail-meta { margin-top: 2px; }
