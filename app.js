@@ -1132,10 +1132,12 @@ function renderAnnouncementDetail(id) {
   const body = $("#announcementDetailBody");
   if (!list || !detail || !title || !date || !body) return;
   const label = ANNOUNCEMENT_TYPE_LABELS[item.type] || "一般公告";
-  title.textContent = item.type === "update" ? `${label} ${item.version || ""}`.trim() : label;
+  const detailHeading = item.summary || item.title || label;
+  $("#announcementTitle").textContent = detailHeading;
+  $("#announcementTitle").hidden = false;
+  title.hidden = true;
   date.textContent = item.date;
-  body.innerHTML = `<h3 class="announcement-detail-heading"></h3><ul class="announcement-detail-list"></ul>`;
-  body.querySelector("h3").textContent = item.summary || item.title || label;
+  body.innerHTML = `<ul class="announcement-detail-list"></ul>`;
   const ul = body.querySelector("ul");
   item.content.forEach(line => {
     const li = document.createElement("li");
@@ -1144,7 +1146,6 @@ function renderAnnouncementDetail(id) {
   });
   list.hidden = true;
   detail.hidden = false;
-  $("#announcementTitle").hidden = true;
   $("#announcementBack").hidden = false;
   $("#announcementBack").textContent = "×";
   $("#announcementBack").setAttribute("aria-label", "關閉公告詳細內容");
@@ -2472,7 +2473,9 @@ function initialize() {
   $("#announcementDialog")?.addEventListener("close", () => {
     $("#announcementDetailView").hidden = true;
     $("#announcementListView").hidden = false;
+    $("#announcementTitle").textContent = "公告中心";
     $("#announcementTitle").hidden = false;
+    $("#announcementDetailTitle").hidden = false;
     $("#announcementBack").hidden = true;
     $("#announcementBack").textContent = "‹";
     $("#announcementBack").setAttribute("aria-label", "返回公告列表");
