@@ -995,7 +995,41 @@ function handlePaymentMethodActions(event) {
   renderPaymentPie(getMonthRecords());
 }
 
-const ANNOUNCEMENTS = [{ id: "v2.3-2026-11-01", title: "V2.3 功能更新公告" }];
+const ANNOUNCEMENTS = [
+  {
+    id: "v2.3.1-2026-11-02",
+    type: "update",
+    version: "V2.3.1",
+    title: "更新公告 V2.3.1",
+    date: "2026/11/02",
+    summary: "公告中心介面調整與分類設定規劃",
+    content: [
+      "公告中心改為多則公告的子入口列表，可依公告類型顯示不同標題。",
+      "更新類公告會在標題後標示版本號。",
+      "設定頁新增分類設定入口的介面規劃。"
+    ]
+  },
+  {
+    id: "v2.3-2026-11-01",
+    type: "update",
+    version: "V2.3",
+    title: "更新公告 V2.3",
+    date: "2026/11/01",
+    summary: "查詢紀錄與設定頁調整",
+    content: [
+      "查詢紀錄新增年月選擇器，可直接切換想查詢的月份。",
+      "設定頁新增獨立的載具與付款方式入口。",
+      "新增付款方式管理，可新增、修改及刪除付款方式，舊紀錄維持原樣。"
+    ]
+  }
+];
+
+const ANNOUNCEMENT_TYPE_LABELS = {
+  update: "更新公告",
+  system: "系統公告",
+  general: "一般公告",
+  event: "活動公告"
+};
 
 function getReadAnnouncementIds() {
   try {
@@ -1009,9 +1043,53 @@ function updateAnnouncementBadge() {
   if (dot) dot.hidden = ANNOUNCEMENTS.every(item => getReadAnnouncementIds().includes(item.id));
 }
 
+function renderAnnouncementList() {
+  const list = $("#announcementList");
+  if (!list) return;
+  const readIds = new Set(getReadAnnouncementIds());
+  const icons = { update: "↻", system: "⚙", general: "ⓘ", event: "✦" };
+  list.innerHTML = ANNOUNCEMENTS.map(item => {
+    const label = ANNOUNCEMENT_TYPE_LABELS[item.type] || "一般公告";
+    const title = item.type === "update" ? `${label} ${item.version || ""}`.trim() : label;
+    return `<button class="announcement-item" type="button" data-announcement-id="${item.id}">
+      <span class="announcement-item-icon" aria-hidden="true">${icons[item.type] || "ⓘ"}</span>
+      <span class="announcement-item-copy"><strong>${title}</strong><small>${item.summary}</small></span>
+      <span class="announcement-item-meta"><time>${item.date}</time><span aria-hidden="true">›</span></span>
+      ${readIds.has(item.id) ? "" : '<i class="announcement-unread-dot" aria-label="未讀"></i>'}
+    </button>`;
+  }).join("");
+}
+
+function renderAnnouncementDetail(id) {
+  const item = ANNOUNCEMENTS.find(entry => entry.id === id);
+  if (!item) return;
+  const list = $("#announcementListView");
+  const detail = $("#announcementDetailView");
+  const title = $("#announcementDetailTitle");
+  const date = $("#announcementDetailDate");
+  const body = $("#announcementDetailBody");
+  if (!list || !detail || !title || !date || !body) return;
+  const label = ANNOUNCEMENT_TYPE_LABELS[item.type] || "一般公告";
+  title.textContent = item.type === "update" ? `${label} ${item.version || ""}`.trim() : label;
+  date.textContent = item.date;
+  body.innerHTML = `<h3 class="announcement-detail-heading"></h3><ul class="announcement-detail-list"></ul>`;
+  body.querySelector("h3").textContent = item.summary || item.title || label;
+  const ul = body.querySelector("ul");
+  item.content.forEach(line => {
+    const li = document.createElement("li");
+    li.textContent = line;
+    ul.appendChild(li);
+  });
+  list.hidden = true;
+  detail.hidden = false;
+}
+
 function openAnnouncementDialog() {
   const dialog = $("#announcementDialog");
   if (!dialog) return;
+  renderAnnouncementList();
+  $("#announcementListView").hidden = false;
+  $("#announcementDetailView").hidden = true;
   dialog.showModal();
   const readIds = new Set(getReadAnnouncementIds());
   ANNOUNCEMENTS.forEach(item => readIds.add(item.id));
@@ -2301,12 +2379,24 @@ function initialize() {
     if (event.target.closest("#resetAllBtn")) resetAllData();
   });
 
-  // 公告按鈕：開啟時將目前公告標記為已讀。
+  // 公告中心：列表中的每則公告都是獨立子入口，可返回公告列表。
   $("#announcementBtn")?.addEventListener("click", openAnnouncementDialog);
   $("#closeAnnouncement")?.addEventListener("click", () => $("#announcementDialog")?.close());
   $("#closeAnnouncementFooter")?.addEventListener("click", () => $("#announcementDialog")?.close());
+  $("#announcementList")?.addEventListener("click", event => {
+    const item = event.target.closest("[data-announcement-id]");
+    if (item) renderAnnouncementDetail(item.dataset.announcementId);
+  });
+  $("#announcementBack")?.addEventListener("click", () => {
+    $("#announcementDetailView").hidden = true;
+    $("#announcementListView").hidden = false;
+  });
   $("#announcementDialog")?.addEventListener("click", event => {
     if (event.target === event.currentTarget) event.currentTarget.close();
+  });
+  $("#announcementDialog")?.addEventListener("close", () => {
+    $("#announcementDetailView").hidden = true;
+    $("#announcementListView").hidden = false;
   });
   updateAnnouncementBadge();
 
