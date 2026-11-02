@@ -2737,3 +2737,11 @@ dialog select {
 .announcement-dialog-heading .announcement-back-button { position: static; flex: 0 0 34px; width: 34px; min-height: 34px; margin: 0 0 0 auto; padding: 0; }
 .announcement-dialog-heading #closeAnnouncement[hidden] { display: none !important; }
 .announcement-dialog-heading .close-button { margin-left: auto; }
+
+
+/* 設定子入口標題靠左，返回設定固定在右上角 */
+.settings-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.settings-heading-copy { min-width: 0; }
+.settings-heading-copy h2 { margin-bottom: 0; }
+.settings-back-button { margin-left: auto; flex: 0 0 auto; }
+.announcement-dialog-heading .announcement-back-button { margin-left: auto; }
