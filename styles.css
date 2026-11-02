@@ -2745,3 +2745,7 @@ dialog select {
 .settings-heading-copy h2 { margin-bottom: 0; }
 .settings-back-button { margin-left: auto; flex: 0 0 auto; }
 .announcement-dialog-heading .announcement-back-button { margin-left: auto; }
+
+
+/* 公告詳細頁：標題靠左，右上角保留關閉按鈕 */
+.announcement-dialog-heading .announcement-back-button { margin-left: auto; }
