@@ -2707,3 +2707,5 @@ dialog select {
   line-height: 1;
 }
 .announcement-detail-meta { margin-top: 2px; }
+
+.announcement-dialog-heading .close-button { margin-left: auto; }
