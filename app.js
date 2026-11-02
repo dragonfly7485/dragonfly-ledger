@@ -728,7 +728,16 @@ function initializeMenu() {
     if (Math.abs(deltaX) < swipeThreshold || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
 
     if (deltaX > 0 && !sideMenu.classList.contains("open")) {
-      openMenu();
+      const settingsSection = $("#settingsSection");
+      const isSettingsSubpage = document.body.dataset.page === "settings" &&
+        settingsSection?.dataset.settingsPanel &&
+        settingsSection.dataset.settingsPanel !== "home";
+      if (isSettingsSubpage) {
+        // 第一次右滑先回到設定目錄；再次右滑才開啟側邊選單。
+        $("#settingsBackButton")?.click();
+      } else {
+        openMenu();
+      }
     } else if (deltaX < 0 && sideMenu.classList.contains("open")) {
       closeMenu();
     }
@@ -1057,11 +1066,11 @@ const ANNOUNCEMENTS = [
     version: "v2.3.1",
     title: "更新公告 v2.3.1",
     date: "2026/11/02",
-    summary: "公告中心介面調整與分類設定規劃",
+    summary: "改善使用者互動體驗，新增分類設定",
     content: [
-      "公告中心改為多則公告的子入口列表，可依公告類型顯示不同標題。",
-      "更新類公告會在標題後標示版本號。",
-      "設定頁新增分類設定入口的介面規劃。"
+      "改善操作流程與頁面導覽體驗，讓常用功能更容易找到與操作。",
+      "新增分類設定，可分別管理收入與支出分類，支援新增及刪除。",
+      "公告詳細頁的右上角按鈕改為關閉，操作方式更直覺。"
     ]
   },
   {
@@ -1137,6 +1146,8 @@ function renderAnnouncementDetail(id) {
   detail.hidden = false;
   $("#announcementTitle").hidden = true;
   $("#announcementBack").hidden = false;
+  $("#announcementBack").textContent = "×";
+  $("#announcementBack").setAttribute("aria-label", "關閉公告詳細內容");
   $("#closeAnnouncement").hidden = true;
 }
 
@@ -1148,6 +1159,8 @@ function openAnnouncementDialog() {
   $("#announcementDetailView").hidden = true;
   $("#announcementTitle").hidden = false;
   $("#announcementBack").hidden = true;
+  $("#announcementBack").textContent = "‹";
+  $("#announcementBack").setAttribute("aria-label", "返回公告列表");
   $("#closeAnnouncement").hidden = false;
   dialog.showModal();
   const readIds = new Set(getReadAnnouncementIds());
@@ -2451,11 +2464,7 @@ function initialize() {
     if (item) renderAnnouncementDetail(item.dataset.announcementId);
   });
   $("#announcementBack")?.addEventListener("click", () => {
-    $("#announcementDetailView").hidden = true;
-    $("#announcementListView").hidden = false;
-    $("#announcementTitle").hidden = false;
-    $("#announcementBack").hidden = true;
-    $("#closeAnnouncement").hidden = false;
+    $("#announcementDialog")?.close();
   });
   $("#announcementDialog")?.addEventListener("click", event => {
     if (event.target === event.currentTarget) event.currentTarget.close();
@@ -2465,6 +2474,8 @@ function initialize() {
     $("#announcementListView").hidden = false;
     $("#announcementTitle").hidden = false;
     $("#announcementBack").hidden = true;
+    $("#announcementBack").textContent = "‹";
+    $("#announcementBack").setAttribute("aria-label", "返回公告列表");
     $("#closeAnnouncement").hidden = false;
   });
   updateAnnouncementBadge();
