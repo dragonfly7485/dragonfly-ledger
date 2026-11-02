@@ -13,7 +13,7 @@
   <title>蜻蜓牌記帳本</title>
 
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./styles.css?v=20261102-29">
+  <link rel="stylesheet" href="./styles.css?v=20261102-30">
 </head>
 
 <body data-page="home">
@@ -478,6 +478,7 @@
           <button class="settings-category-button" type="button" data-settings-open="carrier">
             <span class="settings-category-icon" aria-hidden="true">🧾</span><span><strong>電子發票載具</strong><small>管理手機條碼與首頁顯示</small></span><span class="settings-category-chevron">›</span>
           </button>
+          <button class="settings-category-button" type="button" data-settings-open="categories"><span class="settings-category-icon" aria-hidden="true">🏷️</span><span><strong>分類設定</strong><small>管理收入與支出分類</small></span><span class="settings-category-chevron">›</span></button>
           <button class="settings-category-button" type="button" data-settings-open="payments">
             <span class="settings-category-icon" aria-hidden="true">💳</span><span><strong>付款方式</strong><small>新增、修改或刪除付款方式</small></span><span class="settings-category-chevron">›</span>
           </button>
@@ -497,6 +498,7 @@
             <p id="carrierSettingsHelp" class="settings-help">請輸入以「/」開頭、共 8 個字元的手機條碼。清空並儲存即可移除載具；未設定有效條碼時，首頁按鈕會自動隱藏。</p>
           </div>
         </div>
+<div id="settingsPanel-categories" class="settings-subpanel" hidden><div class="settings-backup category-settings"><h3>分類設定</h3><p class="settings-note">管理新增記帳時可選擇的收入與支出分類。刪除分類不會刪除過去的記帳紀錄。</p><div class="category-settings-tabs"><button class="category-settings-tab active" type="button" data-category-type="expense" aria-pressed="true">支出分類</button><button class="category-settings-tab" type="button" data-category-type="income" aria-pressed="false">收入分類</button></div><div class="payment-method-add"><input id="newCategoryInput" type="text" maxlength="20" placeholder="輸入分類名稱" aria-label="新分類名稱"><button id="addCategoryBtn" class="save-button" type="button">新增</button></div><div id="categorySettingsList" class="payment-method-list"></div><p id="categorySettingsFeedback" class="settings-help" role="status" aria-live="polite"></p></div></div>
         <div id="settingsPanel-payments" class="settings-subpanel" hidden>
           <div class="settings-backup payment-settings">
             <h3>付款方式管理</h3>
@@ -575,7 +577,7 @@
   </dialog>
 
   <dialog id="announcementDialog" class="changelog-dialog announcement-dialog" aria-labelledby="announcementTitle">
-    <div class="dialog-heading announcement-dialog-heading"><button id="announcementBack" class="announcement-back-button" type="button" aria-label="返回公告列表" hidden>‹</button><h2 id="announcementTitle">公告中心</h2><button id="closeAnnouncement" class="close-button" type="button" aria-label="關閉公告">×</button></div>
+    <div class="dialog-heading announcement-dialog-heading"><h2 id="announcementTitle">公告中心</h2><button id="announcementBack" class="announcement-back-button" type="button" aria-label="返回公告列表" hidden>‹</button><button id="closeAnnouncement" class="close-button" type="button" aria-label="關閉公告">×</button></div>
     <section id="announcementListView" class="announcement-list-view">
       <p class="announcement-intro">查看蜻蜓牌記帳本的最新消息與歷史公告。</p>
       <div id="announcementList" class="announcement-list" aria-label="公告列表"></div>
@@ -867,7 +869,7 @@
       });
     })();
   </script>
-  <script src="./app.js?v=20261102-29" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
+  <script src="./app.js?v=20261102-30" onerror="document.body.insertAdjacentHTML('beforeend','<pre style=&quot;position:fixed;z-index:999999;bottom:8px;left:8px;right:8px;background:#fff0f0;color:#7a1111;padding:12px;white-space:pre-wrap&quot;>記帳本程式檔載入失敗，請截圖回報。</pre>')"></script>
 
   <!-- 離線功能 -->
   <script>
