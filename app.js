@@ -978,6 +978,7 @@ function handleCategoryActions(event) {
   if (!name || name === "其他") return;
   const index = categories[categorySettingsType].indexOf(name);
   if (index < 0) return;
+  if (!window.confirm(`確定刪除「${name}」？過去使用此分類的記帳紀錄會保留原資料。`)) return;
   categories[categorySettingsType].splice(index, 1);
   const previousIcon = categoryIcons[name];
   delete categoryIcons[name];
