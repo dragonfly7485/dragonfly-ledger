@@ -30,6 +30,7 @@ function loadCategories() {
 }
 const categories = loadCategories();
 let categorySettingsType = "expense";
+let editingCategoryName = "";
 function saveCategories() {
   try { localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories)); return true; }
   catch { alert("分類設定儲存失敗，請確認瀏覽器儲存空間。"); return false; }
@@ -900,38 +901,87 @@ function addCategory() {
 }
 function editCategory(name) {
   if (!categories[categorySettingsType].includes(name) || name === "其他") return;
-  const nextName = window.prompt("修改分類名稱：", name);
-  if (nextName === null) return;
-  const trimmedName = nextName.trim();
-  if (!trimmedName) { alert("分類名稱不能空白。"); return; }
-  if (trimmedName !== name && categories[categorySettingsType].includes(trimmedName)) {
-    alert("這個分類名稱已經存在。");
+  const dialog = $("#categoryEditDialog");
+  const nameInput = $("#categoryEditName");
+  const iconInput = $("#categoryEditIcon");
+  if (!dialog || !nameInput || !iconInput) return;
+  editingCategoryName = name;
+  nameInput.value = name;
+  iconInput.value = categoryIcons[name] || "🏷️";
+  $("#categoryEditError").textContent = "";
+  if (!dialog.open) dialog.showModal();
+  nameInput.focus({ preventScroll: true });
+}
+
+function closeCategoryEditor() {
+  $("#categoryEditDialog")?.close();
+  editingCategoryName = "";
+}
+
+function saveCategoryEdit(event) {
+  event.preventDefault();
+  const oldName = editingCategoryName;
+  if (!oldName || !categories[categorySettingsType].includes(oldName)) {
+    closeCategoryEditor();
     return;
   }
-  const currentIcon = categoryIcons[name] || "🏷️";
-  const nextIcon = window.prompt("修改分類 Emoji（留空保留原圖示）：", currentIcon);
-  if (nextIcon === null) return;
-  const icon = firstCategoryEmoji(nextIcon) || currentIcon;
+  const nameInput = $("#categoryEditName");
+  const iconInput = $("#categoryEditIcon");
+  const error = $("#categoryEditError");
+  const nextName = nameInput.value.trim();
+  const nextIcon = firstCategoryEmoji(iconInput.value);
+  if (!nextName) {
+    error.textContent = "分類名稱不能空白。";
+    nameInput.focus({ preventScroll: true });
+    return;
+  }
+  if (nextName !== oldName && categories[categorySettingsType].includes(nextName)) {
+    error.textContent = "這個分類名稱已經存在。";
+    nameInput.focus({ preventScroll: true });
+    return;
+  }
+  if (!nextIcon) {
+    error.textContent = "請輸入一個 Emoji。";
+    iconInput.focus({ preventScroll: true });
+    return;
+  }
+
   const list = categories[categorySettingsType];
-  const index = list.indexOf(name);
-  list[index] = trimmedName;
+  const index = list.indexOf(oldName);
+  const previousList = [...list];
+  const previousIcons = { ...categoryIcons };
+  const previousRecords = records.map(record => ({ ...record }));
+  const previousBudgets = JSON.parse(JSON.stringify(budgets));
+  list[index] = nextName;
   records.forEach(record => {
-    if (record.type === categorySettingsType && record.category === name) record.category = trimmedName;
+    if (record.type === categorySettingsType && record.category === oldName) record.category = nextName;
   });
   if (categorySettingsType === "expense") {
     Object.values(budgets).forEach(month => {
-      if (month?.categories && Object.prototype.hasOwnProperty.call(month.categories, name)) {
-        month.categories[trimmedName] = month.categories[name];
-        delete month.categories[name];
+      if (month?.categories && Object.prototype.hasOwnProperty.call(month.categories, oldName)) {
+        month.categories[nextName] = month.categories[oldName];
+        delete month.categories[oldName];
       }
     });
   }
-  if (trimmedName !== name) delete categoryIcons[name];
-  categoryIcons[trimmedName] = icon;
-  saveCategories();
-  saveCategoryIcons();
-  saveRecords();
-  saveBudgets();
+  if (nextName !== oldName) delete categoryIcons[oldName];
+  categoryIcons[nextName] = nextIcon;
+
+  const saved = saveCategories() && saveCategoryIcons() && saveRecords() && saveBudgets();
+  if (!saved) {
+    categories[categorySettingsType] = previousList;
+    Object.keys(categoryIcons).forEach(key => delete categoryIcons[key]);
+    Object.assign(categoryIcons, previousIcons);
+    records = previousRecords;
+    budgets = previousBudgets;
+    saveCategories();
+    saveCategoryIcons();
+    saveRecords();
+    saveBudgets();
+    return;
+  }
+
+  closeCategoryEditor();
   $("#categorySettingsFeedback").textContent = "分類已更新。";
   renderCategorySettings();
   updateCategoryOptions();
@@ -2504,10 +2554,12 @@ function initialize() {
   });
   $("#addPaymentMethodBtn")?.addEventListener("click", addPaymentMethod);
   $("#addCategoryBtn")?.addEventListener("click", addCategory);
-  $("#categorySettingsList")?.addEventListener("click", (event) => {
-    const iconButton = event.target.closest("[data-category-icon]");
-    if (iconButton) { editCategoryIcon(iconButton.dataset.categoryIcon); return; }
-    handleCategoryActions(event);
+  $("#categorySettingsList")?.addEventListener("click", handleCategoryActions);
+  $("#categoryEditForm")?.addEventListener("submit", saveCategoryEdit);
+  $("#categoryEditClose")?.addEventListener("click", closeCategoryEditor);
+  $("#categoryEditCancel")?.addEventListener("click", closeCategoryEditor);
+  $("#categoryEditDialog")?.addEventListener("click", event => {
+    if (event.target === event.currentTarget) closeCategoryEditor();
   });
 
   document.querySelectorAll("[data-category-type]").forEach(button => button.addEventListener("click", () => { categorySettingsType = button.dataset.categoryType; renderCategorySettings(); }));
