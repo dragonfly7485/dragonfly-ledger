@@ -2455,6 +2455,7 @@ function initialize() {
     $("#announcementListView").hidden = false;
     $("#announcementTitle").hidden = false;
     $("#announcementBack").hidden = true;
+    $("#closeAnnouncement").hidden = false;
   });
   $("#announcementDialog")?.addEventListener("click", event => {
     if (event.target === event.currentTarget) event.currentTarget.close();
@@ -2464,6 +2465,7 @@ function initialize() {
     $("#announcementListView").hidden = false;
     $("#announcementTitle").hidden = false;
     $("#announcementBack").hidden = true;
+    $("#closeAnnouncement").hidden = false;
   });
   updateAnnouncementBadge();
 
