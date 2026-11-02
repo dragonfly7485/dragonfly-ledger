@@ -941,6 +941,8 @@ function editCategory(name) {
 }
 
 function handleCategoryActions(event) {
+  const editButton = event.target.closest("[data-category-edit]");
+  if (editButton) { editCategory(editButton.dataset.categoryEdit); return; }
   const button = event.target.closest("[data-category-delete]");
   if (!button) return;
   const name = button.dataset.categoryDelete;
