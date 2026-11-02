@@ -2398,6 +2398,7 @@ function initialize() {
   $("#announcementDialog")?.addEventListener("close", () => {
     $("#announcementDetailView").hidden = true;
     $("#announcementListView").hidden = false;
+    $("#announcementTitle").hidden = false;
   });
   updateAnnouncementBadge();
 
