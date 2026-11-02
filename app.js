@@ -836,9 +836,10 @@ function renderCategorySettings() {
   if (!list) return;
   list.innerHTML = categories[categorySettingsType].map(name => {
     const icon = categoryIcons[name] || "🏷️";
+    const iconAction = `<button class="category-icon-edit" type="button" data-category-icon="${escapeHTML(name)}" aria-label="更換${escapeHTML(name)}圖示">${icon} 圖示</button>`;
     const actions = name === "其他"
-      ? '<span class="payment-method-default category-default">預設</span>'
-      : `<div class="category-settings-actions"><button class="category-icon-edit" type="button" data-category-icon="${escapeHTML(name)}" aria-label="更換${escapeHTML(name)}圖示">${icon} 圖示</button><button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button></div>`;
+      ? `<div class="category-settings-actions">${iconAction}<span class="payment-method-default category-default">預設</span></div>`
+      : `<div class="category-settings-actions">${iconAction}<button class="payment-method-delete" type="button" data-category-delete="${escapeHTML(name)}" aria-label="刪除${escapeHTML(name)}">刪除</button></div>`;
     return `<div class="payment-method-row category-settings-row"><span class="category-settings-name"><span class="category-settings-preview" aria-hidden="true">${icon}</span>${escapeHTML(name)}</span>${actions}</div>`;
   }).join("");
   document.querySelectorAll("[data-category-type]").forEach(button => {
