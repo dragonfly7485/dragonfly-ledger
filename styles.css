@@ -2663,3 +2663,22 @@ dialog select {
 .announcement-detail-heading { margin: 0 0 9px; color: var(--text); font-size: 15px; }
 .announcement-detail-list { margin: 0; padding-left: 21px; }
 .announcement-detail-list li + li { margin-top: 8px; }
+
+
+/* v2.3.1 UI 微調：公告列表使用更新標籤，詳細頁隱藏中心標題 */
+#announcementTitle[hidden] { display: none !important; }
+.announcement-item-copy strong { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.announcement-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #dceee2;
+  color: #286342;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: .02em;
+}
