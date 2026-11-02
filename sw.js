@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "dragonfly-ledger-v64";
+const CACHE_NAME = "dragonfly-ledger-v65";
 
 const APP_FILES = [
   "./",
