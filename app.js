@@ -1081,6 +1081,7 @@ function renderAnnouncementDetail(id) {
   list.hidden = true;
   detail.hidden = false;
   $("#announcementTitle").hidden = true;
+  $("#announcementBack").hidden = false;
 }
 
 function openAnnouncementDialog() {
@@ -1090,6 +1091,7 @@ function openAnnouncementDialog() {
   $("#announcementListView").hidden = false;
   $("#announcementDetailView").hidden = true;
   $("#announcementTitle").hidden = false;
+  $("#announcementBack").hidden = true;
   dialog.showModal();
   const readIds = new Set(getReadAnnouncementIds());
   ANNOUNCEMENTS.forEach(item => readIds.add(item.id));
@@ -2390,6 +2392,7 @@ function initialize() {
     $("#announcementDetailView").hidden = true;
     $("#announcementListView").hidden = false;
     $("#announcementTitle").hidden = false;
+    $("#announcementBack").hidden = true;
   });
   $("#announcementDialog")?.addEventListener("click", event => {
     if (event.target === event.currentTarget) event.currentTarget.close();
@@ -2398,6 +2401,7 @@ function initialize() {
     $("#announcementDetailView").hidden = true;
     $("#announcementListView").hidden = false;
     $("#announcementTitle").hidden = false;
+    $("#announcementBack").hidden = true;
   });
   updateAnnouncementBadge();
 
