@@ -496,7 +496,7 @@
             <p id="carrierSettingsHelp" class="settings-help">請輸入以「/」開頭、共 8 個字元的手機條碼。清空並儲存即可移除載具；未設定有效條碼時，首頁按鈕會自動隱藏。</p>
           </div>
         </div>
-<div id="settingsPanel-categories" class="settings-subpanel" hidden><div class="settings-backup category-settings"><h3>分類設定</h3><p class="settings-note">管理新增記帳時可選擇的收入與支出分類。刪除分類不會刪除過去的記帳紀錄。</p><div class="category-settings-tabs"><button class="category-settings-tab active" type="button" data-category-type="expense" aria-pressed="true">支出分類</button><button class="category-settings-tab" type="button" data-category-type="income" aria-pressed="false">收入分類</button></div><div class="payment-method-add"><input id="newCategoryInput" type="text" maxlength="20" placeholder="輸入分類名稱" aria-label="新分類名稱"><button id="addCategoryBtn" class="save-button" type="button">新增</button></div><div id="categorySettingsList" class="payment-method-list"></div><p id="categorySettingsFeedback" class="settings-help" role="status" aria-live="polite"></p></div></div>
+<div id="settingsPanel-categories" class="settings-subpanel" hidden><div class="settings-backup category-settings"><h3>分類設定</h3><p class="settings-note">管理新增記帳時可選擇的收入與支出分類。刪除分類不會刪除過去的記帳紀錄。</p><div class="category-settings-tabs"><button class="category-settings-tab active" type="button" data-category-type="expense" aria-pressed="true">支出分類</button><button class="category-settings-tab" type="button" data-category-type="income" aria-pressed="false">收入分類</button></div><div class="category-add-fields"><input id="newCategoryInput" type="text" maxlength="20" placeholder="分類名稱" aria-label="新分類名稱"><input id="newCategoryIconInput" class="category-emoji-input" type="text" maxlength="12" placeholder="😀" aria-label="分類 Emoji，可留空使用預設圖示" autocomplete="off"><button id="addCategoryBtn" class="save-button" type="button">新增</button></div><p class="settings-note category-emoji-hint">圖示欄位可直接輸入或使用手機 Emoji 鍵盤；留空會使用預設圖示。</p><div id="categorySettingsList" class="payment-method-list"></div><p id="categorySettingsFeedback" class="settings-help" role="status" aria-live="polite"></p></div></div>
         <div id="settingsPanel-payments" class="settings-subpanel" hidden>
           <div class="settings-backup payment-settings">
             <h3>付款方式管理</h3>
@@ -708,14 +708,7 @@
     </div>
   </dialog>
 
-  <dialog id="categoryIconPickerDialog" class="category-icon-picker-dialog" aria-labelledby="categoryIconPickerTitle">
-    <div class="dialog-heading">
-      <h2 id="categoryIconPickerTitle">選擇分類圖示</h2>
-      <button id="closeCategoryIconPicker" class="close-button" type="button" aria-label="關閉圖示選擇器">×</button>
-    </div>
-    <p class="settings-note">選擇喜歡的圖示，儲存後會套用到所有相關紀錄。</p>
-    <div id="categoryIconPickerGrid" class="category-icon-picker-grid"></div>
-  </dialog>
+
 
   <dialog id="transactionDialog">
     <form id="transactionForm">
