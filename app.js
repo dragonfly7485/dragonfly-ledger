@@ -50,16 +50,6 @@ try {
   }
 } catch (error) { console.error("讀取分類圖示失敗：", error); }
 
-const CATEGORY_ICON_OPTIONS = [
-  { group: "常用", icons: ["🍜","🍔","🍕","🥗","🍱","☕","🧋","🍰","🍎","🥐","🍣","🍦"] },
-  { group: "交通", icons: ["🛵","🚗","🚕","🚌","🚆","🚲","✈️","⛽","🚇","🛳️"] },
-  { group: "購物", icons: ["🛍️","🛒","👕","👟","🎁","📱","💻","🧸","💄","🧴"] },
-  { group: "娛樂", icons: ["🎮","🎬","🎵","🎧","🎤","🎨","📷","🎟️","⚽","🏀"] },
-  { group: "生活", icons: ["🏠","🛏️","🪴","🐶","🐱","💡","🧹","🧺","🛠️","🧻"] },
-  { group: "學習", icons: ["📚","📖","✏️","🖊️","🎓","🧮","🔬","🧪","📝","💡"] },
-  { group: "醫療", icons: ["💊","🩺","🏥","🦷","🩹","❤️","🧘","🌡️"] },
-  { group: "金錢與其他", icons: ["💰","💵","💳","🏦","📈","💼","🧾","📦","⭐","🔖","🐉","🏷️"] }
-];
 function saveCategoryIcons() {
   try {
     localStorage.setItem(CATEGORY_ICON_STORAGE_KEY, JSON.stringify(categoryIcons));
@@ -848,27 +838,16 @@ function renderCategorySettings() {
     button.setAttribute("aria-pressed", String(active));
   });
 }
-let editingCategoryIconName = "";
-
-function openCategoryIconPicker(name) {
+function editCategoryIcon(name) {
   if (!categories[categorySettingsType].includes(name)) return;
-  editingCategoryIconName = name;
-  $("#categoryIconPickerTitle").textContent = `選擇「${name}」的圖示`;
-  const grid = $("#categoryIconPickerGrid");
-  if (!grid) return;
-  grid.innerHTML = CATEGORY_ICON_OPTIONS.map(group => `
-    <section class="category-icon-group">
-      <h4>${group.group}</h4>
-      <div class="category-icon-options">
-        ${group.icons.map(icon => `<button type="button" class="category-icon-option${(categoryIcons[name] || "🏷️") === icon ? " selected" : ""}" data-pick-category-icon="${icon}" aria-label="選擇圖示 ${icon}" aria-pressed="${(categoryIcons[name] || "🏷️") === icon}">${icon}</button>`).join("")}
-      </div>
-    </section>`).join("");
-  $("#categoryIconPickerDialog")?.showModal();
-}
-
-function chooseCategoryIcon(icon) {
-  if (!editingCategoryIconName || !CATEGORY_ICON_OPTIONS.some(group => group.icons.includes(icon))) return;
-  const name = editingCategoryIconName;
+  const currentIcon = categoryIcons[name] || "🏷️";
+  const nextIcon = window.prompt(`輸入「${name}」想使用的 Emoji：`, currentIcon);
+  if (nextIcon === null) return;
+  const icon = [...nextIcon.trim()][0] || "";
+  if (!icon) {
+    alert("請輸入一個 Emoji。");
+    return;
+  }
   const previous = categoryIcons[name];
   categoryIcons[name] = icon;
   if (!saveCategoryIcons()) {
@@ -876,8 +855,6 @@ function chooseCategoryIcon(icon) {
     else categoryIcons[name] = previous;
     return;
   }
-  $("#categoryIconPickerDialog")?.close();
-  editingCategoryIconName = "";
   renderCategorySettings();
   render();
   renderBudget();
@@ -885,13 +862,30 @@ function chooseCategoryIcon(icon) {
 
 function addCategory() {
   const input = $("#newCategoryInput");
+  const iconInput = $("#newCategoryIconInput");
   const name = input?.value.trim();
+  const icon = [...(iconInput?.value.trim() || "")][0] || "🏷️";
   const feedback = $("#categorySettingsFeedback");
   if (!name) { if (feedback) feedback.textContent = "請先輸入分類名稱。"; return; }
   if (categories[categorySettingsType].includes(name)) { if (feedback) feedback.textContent = "這個分類已經存在。"; return; }
   categories[categorySettingsType].splice(-1, 0, name);
-  if (!saveCategories()) { categories[categorySettingsType].splice(categories[categorySettingsType].indexOf(name), 1); return; }
+  const previousIcon = categoryIcons[name];
+  categoryIcons[name] = icon;
+  if (!saveCategories()) {
+    categories[categorySettingsType].splice(categories[categorySettingsType].indexOf(name), 1);
+    if (previousIcon === undefined) delete categoryIcons[name];
+    else categoryIcons[name] = previousIcon;
+    return;
+  }
+  if (!saveCategoryIcons()) {
+    categories[categorySettingsType].splice(categories[categorySettingsType].indexOf(name), 1);
+    if (previousIcon === undefined) delete categoryIcons[name];
+    else categoryIcons[name] = previousIcon;
+    saveCategories();
+    return;
+  }
   input.value = "";
+  if (iconInput) iconInput.value = "";
   if (feedback) feedback.textContent = "已新增分類。";
   renderCategorySettings(); updateCategoryOptions(); renderMonth();
 }
@@ -2459,18 +2453,10 @@ function initialize() {
   $("#addCategoryBtn")?.addEventListener("click", addCategory);
   $("#categorySettingsList")?.addEventListener("click", (event) => {
     const iconButton = event.target.closest("[data-category-icon]");
-    if (iconButton) { openCategoryIconPicker(iconButton.dataset.categoryIcon); return; }
+    if (iconButton) { editCategoryIcon(iconButton.dataset.categoryIcon); return; }
     handleCategoryActions(event);
   });
-  $("#categoryIconPickerGrid")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-pick-category-icon]");
-    if (button) chooseCategoryIcon(button.dataset.pickCategoryIcon);
-  });
-  $("#closeCategoryIconPicker")?.addEventListener("click", () => $("#categoryIconPickerDialog")?.close());
-  $("#categoryIconPickerDialog")?.addEventListener("click", event => {
-    if (event.target === event.currentTarget) event.currentTarget.close();
-  });
-  $("#categoryIconPickerDialog")?.addEventListener("close", () => { editingCategoryIconName = ""; });
+
   document.querySelectorAll("[data-category-type]").forEach(button => button.addEventListener("click", () => { categorySettingsType = button.dataset.categoryType; renderCategorySettings(); }));
   $("#paymentMethodList")?.addEventListener("click", handlePaymentMethodActions);
 
