@@ -1330,6 +1330,18 @@ function renderQueryRecords() {
   const maxAmount = maxText === "" ? null : Number(maxText);
   const keyword = ($("#queryNote")?.value ?? "").trim().toLocaleLowerCase();
   const payment = $("#queryPayment")?.value ?? "";
+  const categorySelect = $("#queryCategory");
+  const category = categorySelect?.value ?? "";
+  if (categorySelect) {
+    const keep = categorySelect.value;
+    const options = [...new Set([
+      ...categories.expense,
+      ...categories.income,
+      ...records.map(record => record.category).filter(value => typeof value === "string" && value.trim())
+    ])];
+    categorySelect.innerHTML = `<option value="">全部分類</option>` + options.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join("");
+    if (options.includes(keep)) categorySelect.value = keep;
+  }
 
   const results = records.filter(record => typeof record.date === "string" && record.date.startsWith(selectedMonth)).filter((record) => {
     const amount = Number(record.amount) || 0;
@@ -1337,6 +1349,7 @@ function renderQueryRecords() {
     if (maxAmount !== null && Number.isFinite(maxAmount) && amount > maxAmount) return false;
     if (keyword && !(typeof record.note === "string" && record.note.toLocaleLowerCase().includes(keyword))) return false;
     if (payment && (record.payment || "其他") !== payment) return false;
+    if (category && record.category !== category) return false;
     return true;
   }).sort((a, b) =>
     (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0)
@@ -1344,7 +1357,7 @@ function renderQueryRecords() {
 
   count.textContent = `${results.length} 筆紀錄`;
   if (!results.length) {
-    list.innerHTML = `<div class="empty-state"><span>🔎</span>找不到符合條件的紀錄<br><small>試著調整金額、備註關鍵字或付款方式。</small></div>`;
+    list.innerHTML = `<div class="empty-state"><span>🔎</span>找不到符合條件的紀錄<br><small>試著調整金額、備註關鍵字、付款方式或分類。</small></div>`;
     return;
   }
 
@@ -2528,7 +2541,7 @@ function initialize() {
   });
 
   // 查詢條件即時套用，可同時使用多個條件。
-  ["#queryAmountMin", "#queryAmountMax", "#queryNote", "#queryPayment"].forEach((selector) => {
+  ["#queryAmountMin", "#queryAmountMax", "#queryNote", "#queryPayment", "#queryCategory"].forEach((selector) => {
     $(selector).addEventListener("input", renderQueryRecords);
     $(selector).addEventListener("change", renderQueryRecords);
   });
@@ -2550,6 +2563,7 @@ function initialize() {
     $("#queryAmountMax").value = "";
     $("#queryNote").value = "";
     $("#queryPayment").value = "";
+    $("#queryCategory").value = "";
     renderQueryRecords();
   });
 
